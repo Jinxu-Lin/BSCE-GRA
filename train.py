@@ -77,7 +77,8 @@ def loss_function_save_name(loss_function,
         'bsce': 'bsce_gamma_' + str(gamma),
         'dual_focal_loss': 'dual_focal_loss_gamma_' + str(gamma),
         'ece_loss': 'ece_loss_' + str(n_bins),
-        'tlbs': 'tlbs_gamma_' + str(gamma)
+        'tlbs': 'tlbs_gamma_' + str(gamma),
+        'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
 
     }
     if (loss_function == 'focal_loss' and scheduled == True):

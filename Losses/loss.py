@@ -8,7 +8,7 @@ Implementation of the following loss functions:
 '''
 
 from torch.nn import functional as F
-from Losses.focal_loss import FocalLoss, BSCELoss, DualFocalLoss, ECELoss, TLBSLoss
+from Losses.focal_loss import FocalLoss, BSCELoss, DualFocalLoss, ECELoss, TLBSLoss, DualFocalLossGra, FocalLossGra
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive
 from Losses.mmce import MMCE, MMCE_weighted
 from Losses.brier_score import BrierScore
@@ -52,3 +52,9 @@ def bsce(logits, targets, **kwargs):
 
 def tlbs(logits, targets, **kwargs):
     return TLBSLoss(gamma=kwargs['gamma'], device=kwargs['device'])(logits, targets)
+
+def dual_focal_loss_gra(logits, targets, **kwargs):
+    return DualFocalLossGra(gamma=kwargs['gamma'])(logits, targets)
+
+def focal_loss_gra(logits, targets, **kwargs):
+    return FocalLossGra(gamma=kwargs['gamma'])(logits, targets)
