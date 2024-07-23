@@ -70,7 +70,7 @@ class FocalLossAdaptive(nn.Module):
 
 class FocalLossAdaptiveGra(nn.Module):
     def __init__(self, gamma=0, size_average=False, device=None):
-        super(FocalLossAdaptive, self).__init__()
+        super(FocalLossAdaptiveGra, self).__init__()
         self.size_average = size_average
         self.gamma = gamma
         self.device = device
