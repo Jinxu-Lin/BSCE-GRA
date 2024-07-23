@@ -379,6 +379,7 @@ if __name__ == "__main__":
     with open(save_name[:save_name.rfind('_')] + '_val_error.json', 'a') as ft:
         json.dump(val_set_err, ft)
     
+    wandb.finish()
     end_time = time.time()
     total_time = end_time - start_time
 
