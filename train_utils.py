@@ -6,9 +6,10 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 
-from Losses.loss import cross_entropy, focal_loss, focal_loss_adaptive, dual_focal_loss, ece_loss, tlbs, dual_focal_loss_gra, focal_loss_gra, focal_loss_adaptive_gra
+from Losses.loss import cross_entropy, focal_loss, focal_loss_gra, focal_loss_adaptive, focal_loss_adaptive_gra, dual_focal_loss, dual_focal_loss_gra
 from Losses.loss import mmce, mmce_weighted
-from Losses.loss import brier_score, bsce
+from Losses.loss import brier_score, bsce, bsce_gra, tlbs
+from Losses.loss import ece_loss
 
 
 loss_function_dict = {
@@ -37,6 +38,7 @@ def train_single_epoch(epoch,
                        gamma=1.0,
                        lamda=1.0,
                        n_bins=5,
+                       bsce_norm=1,
                        loss_mean=False):
     '''
     Util method for training a model for a single epoch.
@@ -55,7 +57,7 @@ def train_single_epoch(epoch,
         if ('mmce' in loss_function):
             loss = (len(data) * loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, device=device))
         else:
-            loss = loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, device=device)
+            loss = loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, device=device)
 
         if loss_mean:
             loss = loss / len(data)

@@ -70,17 +70,17 @@ def loss_function_save_name(loss_function,
     res_dict = {
         'cross_entropy': 'cross_entropy',
         'focal_loss': 'focal_loss_gamma_' + str(gamma),
+        'focal_loss_gra': 'focal_loss_gra_gamma_' + str(gamma),
         'focal_loss_adaptive': 'focal_loss_adaptive_gamma_' + str(gamma),
+        'focal_loss_adaptive_gra': 'focal_loss_adaptive_gra_gamma_' + str(gamma),
+        'dual_focal_loss': 'dual_focal_loss_gamma_' + str(gamma),
+        'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
         'mmce': 'mmce_lamda_' + str(lamda),
         'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
         'brier_score': 'brier_score',
         'bsce': 'bsce_gamma_' + str(gamma),
-        'dual_focal_loss': 'dual_focal_loss_gamma_' + str(gamma),
         'ece_loss': 'ece_loss_' + str(n_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
-        'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
-        'focal_loss_adaptive_gra': 'focal_loss_adaptive_gra_gamma_' + str(gamma)
-
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -173,6 +173,8 @@ def parseArgs():
                         dest="gamma_schedule_step1", help="1st step for gamma schedule")
     parser.add_argument("--gamma-schedule-step2", type=int, default=gamma_schedule_step2,
                         dest="gamma_schedule_step2", help="2nd step for gamma schedule")
+    parser.add_argument("--bsce-norm", type=int,default=1, 
+                        dest="bsce_norm", help="Normalization for bsce")
 
     parser.add_argument("--log-interval", type=int, default=log_interval,
                         dest="log_interval", help="Log Interval on Terminal")
@@ -313,6 +315,7 @@ if __name__ == "__main__":
                                         gamma=gamma,
                                         lamda=args.lamda,
                                         n_bins=args.n_bins,
+                                        bsce_norm=args.bsce_norm,
                                         loss_mean=args.loss_mean)
         val_loss = test_single_epoch(epoch,
                                      net,
@@ -321,7 +324,8 @@ if __name__ == "__main__":
                                      loss_function=args.loss_function,
                                      gamma=gamma,
                                      lamda=args.lamda,
-                                     n_bins=args.n_bins)
+                                     n_bins=args.n_bins,                            
+                                     bsce_norm=args.bsce_norm,)
         test_loss = test_single_epoch(epoch,
                                       net,
                                       val_loader,
@@ -329,7 +333,8 @@ if __name__ == "__main__":
                                       loss_function=args.loss_function,
                                       gamma=gamma,
                                       lamda=args.lamda,
-                                      n_bins=args.n_bins)
+                                      n_bins=args.n_bins,                            
+                                     bsce_norm=args.bsce_norm,)
         _, val_acc, _, _, _ = test_classification_net(net, val_loader, device)
         wandb.log(
             {
