@@ -207,7 +207,12 @@ if __name__ == "__main__":
     args = parseArgs()
 
     os.environ['WANDB_MODE'] = 'dryrun'
+
+    # Setting model name
+    if args.model_name is None:
+        args.model_name = args.model
     model_name = args.model_name+'-'+args.dataset+'-'+args.loss_function
+    
     run = wandb.init(project='Uncertainty Quality', name=model_name, config=args)
 
     cuda = False
@@ -220,11 +225,6 @@ if __name__ == "__main__":
 
     # Choosing the model to train
     net = models[args.model](num_classes=num_classes)
-
-    # Setting model name
-    if args.model_name is None:
-        args.model_name = args.model
-
 
     if args.gpu is True:
         net.cuda()
