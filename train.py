@@ -12,6 +12,7 @@ import json
 import sys
 import time
 import os
+import wandb
 
 # Import dataloaders
 import Data.cifar10 as cifar10
@@ -193,22 +194,27 @@ def parseArgs():
                         dest="first_milestone", help="First milestone to change lr")
     parser.add_argument("--second-milestone", type=int, default=second_milestone,
                         dest="second_milestone", help="Second milestone to change lr")
+    parser.add_argument("--wandb_mode", type=str, default='dryrun', dest="wandb_mode",)
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
+
     start_time = time.time()
 
     torch.manual_seed(1)
     args = parseArgs()
+
+    os.environ['WANDB_MODE'] = 'dryrun'
+    model_name = args.model_name+'-'+args.dataset+'-'+args.loss_function
+    run = wandb.init(project='Uncertainty Quality', name=model_name, config=args)
 
     cuda = False
     if (torch.cuda.is_available() and args.gpu):
         cuda = True
     device = torch.device("cuda" if cuda else "cpu")
     print("CUDA set: " + str(cuda))
-
 
     num_classes = dataset_num_classes[args.dataset]
 
@@ -325,14 +331,21 @@ if __name__ == "__main__":
                                       lamda=args.lamda,
                                       n_bins=args.n_bins)
         _, val_acc, _, _, _ = test_classification_net(net, val_loader, device)
-        print("val_acc", val_acc)
+        wandb.log(
+            {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "val_acc": val_acc
+            }
+        )
 
         training_set_loss[epoch] = train_loss
         val_set_loss[epoch] = val_loss
         test_set_loss[epoch] = test_loss
         val_set_err[epoch] = 1 - val_acc
 
-        save_loc = os.path.join(args.save_loc, args.model_name+'-'+args.dataset+'-'+args.loss_function)
+        save_loc = os.path.join(args.save_loc, model_name)
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
