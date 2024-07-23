@@ -23,9 +23,9 @@
             "console": "integratedTerminal",
             "args": [
                 "--loss",
-                "tlbs",
-                "--gamma",
-                "2",
+                "ece_loss",
+                "--n_bins",
+                "5",
                 "--save-path",
                 "/home/jinxulin/focal_calibration-main/model/"
             ]

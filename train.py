@@ -325,6 +325,7 @@ if __name__ == "__main__":
                                       lamda=args.lamda,
                                       n_bins=args.n_bins)
         _, val_acc, _, _, _ = test_classification_net(net, val_loader, device)
+        print("val_acc", val_acc)
 
         training_set_loss[epoch] = train_loss
         val_set_loss[epoch] = val_loss

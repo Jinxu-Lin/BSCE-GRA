@@ -114,20 +114,21 @@ class ECELoss(nn.Module):
         softmaxes = F.softmax(input, dim=1)
         confidences, predictions = torch.max(softmaxes, 1)
         accuracies = predictions.eq(target)
-
-        ece = torch.zeros(1, device=input.device)
-        for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
-            # Calculated |confidence - accuracy| in each bin
-            in_bin = confidences.gt(bin_lower.item()) * confidences.le(bin_upper.item())
-            prop_in_bin = in_bin.float().mean()
-            if prop_in_bin.item() > 0:
-                accuracy_in_bin = accuracies[in_bin].float().mean()
-                avg_confidence_in_bin = confidences[in_bin].mean()
-                ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
+        with torch.no_grad():
+            ece = torch.zeros(1, device=input.device)
+            for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
+                # Calculated |confidence - accuracy| in each bin
+                in_bin = confidences.gt(bin_lower.item()) * confidences.le(bin_upper.item())
+                prop_in_bin = in_bin.float().mean()
+                if prop_in_bin.item() > 0:
+                    accuracy_in_bin = accuracies[in_bin].float().mean()
+                    avg_confidence_in_bin = confidences[in_bin].mean()
+                    ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
 
         logpt = F.log_softmax(input)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
+
         loss = -1 * ece * logpt
 
         if self.size_average: return loss.mean()
