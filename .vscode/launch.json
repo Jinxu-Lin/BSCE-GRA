@@ -11,7 +11,8 @@
             "program": "evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--saved_model_name", "resnet50_focal_loss_gamma_2.0_best_349.model",
+                "--save-path", "/home/jinxulin/UQ/model/resnet50-cifar10-ece_loss/epoch/",
+                "--saved_model_name", "resnet50_ece_loss_5_350.model",
                 "-log"
             ]
         },

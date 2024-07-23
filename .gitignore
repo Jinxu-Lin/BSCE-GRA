@@ -3,4 +3,5 @@ model
 __pycache__
 tiny-imagenet-200
 *.model
-.vscode
+*.vscode
+wandb
