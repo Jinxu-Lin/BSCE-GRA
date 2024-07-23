@@ -1,0 +1,34 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "evaluate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "evaluate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--saved_model_name", "resnet50_focal_loss_gamma_2.0_best_349.model",
+                "-log"
+            ]
+        },
+        {
+            "name": "train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--loss",
+                "tlbs",
+                "--gamma",
+                "2",
+                "--save-path",
+                "/home/jinxulin/focal_calibration-main/model/"
+            ]
+        }
+    ]
+}
