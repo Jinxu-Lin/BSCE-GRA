@@ -5,3 +5,4 @@ tiny-imagenet-200
 *.model
 *.vscode
 wandb
+*.json
