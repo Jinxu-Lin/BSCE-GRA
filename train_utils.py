@@ -6,7 +6,7 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 
-from Losses.loss import cross_entropy, focal_loss, focal_loss_adaptive, dual_focal_loss, ece_loss, tlbs, dual_focal_loss_gra, focal_loss_gra
+from Losses.loss import cross_entropy, focal_loss, focal_loss_adaptive, dual_focal_loss, ece_loss, tlbs, dual_focal_loss_gra, focal_loss_gra, focal_loss_adaptive_gra
 from Losses.loss import mmce, mmce_weighted
 from Losses.loss import brier_score, bsce
 
@@ -14,16 +14,17 @@ from Losses.loss import brier_score, bsce
 loss_function_dict = {
     'cross_entropy': cross_entropy,
     'focal_loss': focal_loss,
+    'focal_loss_gra': focal_loss_gra,
     'focal_loss_adaptive': focal_loss_adaptive,
+    'focal_loss_adaptive_gra': focal_loss_adaptive_gra,
+    'dual_focal_loss': dual_focal_loss,
+    'dual_focal_loss_gra': dual_focal_loss_gra,
     'mmce': mmce,
     'mmce_weighted': mmce_weighted,
     'brier_score': brier_score,
     'bsce': bsce,
-    'dual_focal_loss': dual_focal_loss,
     'ece_loss': ece_loss,
     'tlbs': tlbs,
-    'dual_focal_loss_gra': dual_focal_loss_gra,
-    'focal_loss_gra': focal_loss_gra
 }
 
 

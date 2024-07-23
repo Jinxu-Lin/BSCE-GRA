@@ -66,3 +66,43 @@ class FocalLossAdaptive(nn.Module):
         loss = -1 * (1-pt)**gamma * logpt
         if self.size_average: return loss.mean()
         else: return loss.sum()
+
+
+class FocalLossAdaptiveGra(nn.Module):
+    def __init__(self, gamma=0, size_average=False, device=None):
+        super(FocalLossAdaptive, self).__init__()
+        self.size_average = size_average
+        self.gamma = gamma
+        self.device = device
+
+    def get_gamma_list(self, pt):
+        gamma_list = []
+        batch_size = pt.shape[0]
+        for i in range(batch_size):
+            pt_sample = pt[i].item()
+            if (pt_sample >= 0.5):
+                gamma_list.append(self.gamma)
+                continue
+            # Choosing the gamma for the sample
+            for key in sorted(gamma_dic.keys()):
+                if pt_sample < key:
+                    gamma_list.append(gamma_dic[key])
+                    break
+        return torch.tensor(gamma_list).to(self.device)
+
+    def forward(self, input, target):
+        if input.dim()>2:
+            input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
+            input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
+        target = target.view(-1,1)
+        logpt = F.log_softmax(input, dim=1)
+        logpt = logpt.gather(1,target)
+        logpt = logpt.view(-1)
+        pt = logpt.exp()
+        gamma = self.get_gamma_list(pt)
+        with torch.no_grad():
+            f_p = (1-pt)**gamma
+        loss = -1 * f_p * logpt
+        if self.size_average: return loss.mean()
+        else: return loss.sum()

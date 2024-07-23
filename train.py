@@ -79,6 +79,7 @@ def loss_function_save_name(loss_function,
         'ece_loss': 'ece_loss_' + str(n_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
         'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
+        'focal_loss_adaptive_gra': 'focal_loss_adaptive_gra_gamma_' + str(gamma)
 
     }
     if (loss_function == 'focal_loss' and scheduled == True):
