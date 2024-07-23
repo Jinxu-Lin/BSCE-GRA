@@ -87,7 +87,9 @@ def test_single_epoch(epoch,
                       loss_function='cross_entropy',
                       gamma=1.0,
                       lamda=1.0,
-                      n_bins=5):
+                      n_bins=5,
+                      bsce_norm=1,
+                      ):
     '''
     Util method for testing a model for a single epoch.
     '''
@@ -103,7 +105,7 @@ def test_single_epoch(epoch,
             if ('mmce' in loss_function):
                 loss += (len(data) * loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, device=device).item())
             else:
-                loss += loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, device=device).item()
+                loss += loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, device=device).item()
             num_samples += len(data)
 
     print('======> Test set loss: {:.4f}'.format(
