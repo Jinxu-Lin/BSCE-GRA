@@ -206,13 +206,11 @@ if __name__ == "__main__":
     torch.manual_seed(1)
     args = parseArgs()
 
-    os.environ['WANDB_MODE'] = 'dryrun'
-
     # Setting model name
     if args.model_name is None:
         args.model_name = args.model
     model_name = args.model_name+'-'+args.dataset+'-'+args.loss_function
-    
+
     run = wandb.init(project='Uncertainty Quality', name=model_name, config=args)
 
     cuda = False

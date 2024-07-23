@@ -1,0 +1,132 @@
+wandb_version: 1
+
+dataset:
+  desc: null
+  value: cifar10
+dataset_root:
+  desc: null
+  value: ./
+data_aug:
+  desc: null
+  value: true
+gpu:
+  desc: null
+  value: true
+load:
+  desc: null
+  value: false
+train_batch_size:
+  desc: null
+  value: 128
+test_batch_size:
+  desc: null
+  value: 128
+epoch:
+  desc: null
+  value: 350
+learning_rate:
+  desc: null
+  value: 0.1
+momentum:
+  desc: null
+  value: 0.9
+nesterov:
+  desc: null
+  value: false
+weight_decay:
+  desc: null
+  value: 0.0005
+optimiser:
+  desc: null
+  value: sgd
+loss_function:
+  desc: null
+  value: cross_entropy
+loss_mean:
+  desc: null
+  value: false
+gamma:
+  desc: null
+  value: 1.0
+gamma2:
+  desc: null
+  value: 1.0
+gamma3:
+  desc: null
+  value: 1.0
+lamda:
+  desc: null
+  value: 1.0
+n_bins:
+  desc: null
+  value: 5
+gamma_schedule:
+  desc: null
+  value: 0
+gamma_schedule_step1:
+  desc: null
+  value: 100
+gamma_schedule_step2:
+  desc: null
+  value: 250
+log_interval:
+  desc: null
+  value: 50
+save_interval:
+  desc: null
+  value: 50
+saved_model_name:
+  desc: null
+  value: resnet50_cross_entropy_350.model
+save_loc:
+  desc: null
+  value: ./model/
+model_name:
+  desc: null
+  value: resnet50
+load_loc:
+  desc: null
+  value: ./
+model:
+  desc: null
+  value: resnet50
+first_milestone:
+  desc: null
+  value: 150
+second_milestone:
+  desc: null
+  value: 250
+wandb_mode:
+  desc: null
+  value: dryrun
+_wandb:
+  desc: null
+  value:
+    python_version: 3.11.7
+    cli_version: 0.17.5
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1721729965
+    t:
+      1:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      2:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.11.7
+      5: 0.17.5
+      8:
+      - 5
+      13: linux-x86_64

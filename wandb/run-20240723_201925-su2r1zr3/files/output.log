@@ -1,0 +1,29 @@
+CUDA set: True
+Files already downloaded and verified
+Files already downloaded and verified
+args.save_interval 50
+/home/jinxulin/anaconda3/lib/python3.11/site-packages/torch/optim/lr_scheduler.py:136: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn("Detected call of `lr_scheduler.step()` before `optimizer.step()`. "
+Train Epoch: 0 [0/45056 (0%)]	Loss: 301.877594
+/home/jinxulin/UQ/train_utils.py:61: UserWarning: torch.nn.utils.clip_grad_norm is now deprecated in favor of torch.nn.utils.clip_grad_norm_.
+  torch.nn.utils.clip_grad_norm(model.parameters(), 2)
+Train Epoch: 0 [1280/45056 (3%)]	Loss: 301.975037
+Train Epoch: 0 [2560/45056 (6%)]	Loss: 397.044281
+Train Epoch: 0 [3840/45056 (9%)]	Loss: 404.240204
+Train Epoch: 0 [5120/45056 (11%)]	Loss: 348.213318
+Train Epoch: 0 [6400/45056 (14%)]	Loss: 394.992584
+Train Epoch: 0 [7680/45056 (17%)]	Loss: 315.437347
+Train Epoch: 0 [8960/45056 (20%)]	Loss: 295.913635
+Train Epoch: 0 [10240/45056 (23%)]	Loss: 282.771179
+Train Epoch: 0 [11520/45056 (26%)]	Loss: 314.736389
+Train Epoch: 0 [12800/45056 (28%)]	Loss: 296.916199
+Train Epoch: 0 [14080/45056 (31%)]	Loss: 269.604675
+Train Epoch: 0 [15360/45056 (34%)]	Loss: 264.980072
+Traceback (most recent call last):
+  File "/home/jinxulin/UQ/train.py", line 305, in <module>
+    train_loss = train_single_epoch(epoch,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jinxulin/UQ/train_utils.py", line 62, in train_single_epoch
+    train_loss += loss.item()
+                  ^^^^^^^^^^^
+KeyboardInterrupt
