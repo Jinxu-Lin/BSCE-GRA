@@ -228,29 +228,29 @@ if __name__ == "__main__":
 
 
 
-    scaled_model = ModelWithTemperature(net, args.log)
-    scaled_model.set_temperature(val_loader, cross_validate=cross_validation_error)
-    T_opt = scaled_model.get_temperature()
-    logits, labels = get_logits_labels(test_loader, scaled_model)
-    conf_matrix, accuracy, _, _, _ = test_classification_net_logits(logits, labels)
+    # scaled_model = ModelWithTemperature(net, args.log)
+    # scaled_model.set_temperature(val_loader, cross_validate=cross_validation_error)
+    # T_opt = scaled_model.get_temperature()
+    # logits, labels = get_logits_labels(test_loader, scaled_model)
+    # conf_matrix, accuracy, _, _, _ = test_classification_net_logits(logits, labels)
 
-    ece = ece_criterion(logits, labels).item()
-    adaece = adaece_criterion(logits, labels).item()
-    cece = cece_criterion(logits, labels).item()
-    nll = nll_criterion(logits, labels).item()
-    bs = bs_criterion(logits,labels).item()
+    # ece = ece_criterion(logits, labels).item()
+    # adaece = adaece_criterion(logits, labels).item()
+    # cece = cece_criterion(logits, labels).item()
+    # nll = nll_criterion(logits, labels).item()
+    # bs = bs_criterion(logits,labels).item()
 
-    res_str += '&{:.4f}({:.2f})&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(nll,  T_opt,  ece,  adaece, cece, bs)
+    # res_str += '&{:.4f}({:.2f})&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(nll,  T_opt,  ece,  adaece, cece, bs)
 
-    if args.log:
-        print ('Optimal temperature: ' + str(T_opt))
-        print (conf_matrix)
-        print('Test error: {:.2f}%'.format((1 - accuracy) * 100))
-        print('Test NLL: {:.2f}'.format(nll * 100))
-        print('ECE: {:.2f}'.format(ece * 100))
-        print('AdaECE: {:.2f}'.format(adaece * 100))
-        print('Classwise ECE: {:.2f}'.format(cece * 100))
-        print('Brier Score: {:.2f}'.format(bs * 100))
+    # if args.log:
+    #     print ('Optimal temperature: ' + str(T_opt))
+    #     print (conf_matrix)
+    #     print('Test error: {:.2f}%'.format((1 - accuracy) * 100))
+    #     print('Test NLL: {:.2f}'.format(nll * 100))
+    #     print('ECE: {:.2f}'.format(ece * 100))
+    #     print('AdaECE: {:.2f}'.format(adaece * 100))
+    #     print('Classwise ECE: {:.2f}'.format(cece * 100))
+    #     print('Brier Score: {:.2f}'.format(bs * 100))
 
-    # Test NLL & ECE & AdaECE & Classwise ECE
-    print(res_str)
+    # # Test NLL & ECE & AdaECE & Classwise ECE
+    # print(res_str)
