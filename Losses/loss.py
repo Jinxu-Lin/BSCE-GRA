@@ -65,6 +65,6 @@ def tlbs(logits, targets, **kwargs):
     return TLBSLoss(gamma=kwargs['gamma'], device=kwargs['device'])(logits, targets)
 
 def dece(logits, targets, **kwargs):
-    return DECE(kwargs["device"], kwargs["num_bins"], kwargs["t_a"], kwargs["t_b"])(
+    return DECE(device = kwargs["device"], num_bins = kwargs["n_bins"], t_a = 100, t_b = 0.01)(
         logits, targets
     )
