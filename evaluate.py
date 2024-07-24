@@ -220,7 +220,7 @@ if __name__ == "__main__":
     if args.log:
         print(conf_matrix)
         print('Test error: {:.2f}%'.format((1 - p_accuracy) * 100))
-        print('Test NLL: {:.2f}'.format(p_nll * 100))
+        # print('Test NLL: {:.2f}'.format(p_nll * 100))
         print('ECE: {:.2f}'.format(p_ece * 100))
         print('AdaECE: {:.2f}'.format(p_adaece * 100))
         print('Classwise ECE: {:.2f}'.format(p_cece * 100))
