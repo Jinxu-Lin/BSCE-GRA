@@ -9,7 +9,7 @@ from torch import nn
 from Losses.loss import cross_entropy, focal_loss, focal_loss_gra, focal_loss_adaptive, focal_loss_adaptive_gra, dual_focal_loss, dual_focal_loss_gra
 from Losses.loss import mmce, mmce_weighted
 from Losses.loss import brier_score, bsce, bsce_gra, tlbs
-from Losses.loss import ece_loss
+from Losses.loss import ece_loss, dece
 
 
 loss_function_dict = {
@@ -26,6 +26,7 @@ loss_function_dict = {
     'bsce': bsce,
     'ece_loss': ece_loss,
     'tlbs': tlbs,
+    'dece': dece,
 }
 
 

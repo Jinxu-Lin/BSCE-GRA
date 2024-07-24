@@ -13,11 +13,11 @@ from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiv
 from Losses.mmce import MMCE, MMCE_weighted
 from Losses.brier_score import BrierScore, BSCELoss, BSCELossGra, TLBSLoss
 from Losses.ece import ECELoss
+from Losses.dece import DECE
 
 
 def cross_entropy(logits, targets, **kwargs):
     return F.cross_entropy(logits, targets, reduction='sum')
-
 
 def focal_loss(logits, targets, **kwargs):
     return FocalLoss(gamma=kwargs['gamma'])(logits, targets)
@@ -63,3 +63,8 @@ def bsce_gra(logits, targets, **kwargs):
 
 def tlbs(logits, targets, **kwargs):
     return TLBSLoss(gamma=kwargs['gamma'], device=kwargs['device'])(logits, targets)
+
+def dece(logits, targets, **kwargs):
+    return DECE(kwargs["device"], kwargs["num_bins"], kwargs["t_a"], kwargs["t_b"])(
+        logits, targets
+    )
