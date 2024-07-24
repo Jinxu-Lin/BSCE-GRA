@@ -213,7 +213,7 @@ if __name__ == "__main__":
     # Setting model name
     if args.model_name is None:
         args.model_name = args.model
-    model_name = args.model_name+'-'+args.dataset+'-'+args.loss_function
+    model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
 
     run = wandb.init(project='Uncertainty Quality', name=model_name, config=args)
 
