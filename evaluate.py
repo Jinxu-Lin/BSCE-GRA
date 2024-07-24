@@ -93,6 +93,9 @@ def parseArgs():
                         dest="cross_validation_error", help='Error function to do temp scaling')
     parser.add_argument("-log", action="store_true", dest="log",
                         help="whether to print log data")
+    parser.add_argument("--loss", type=str, default='dual_focal_loss')
+    parser.add_argument("--gamma", type=float, default=3.0)
+
 
     return parser.parse_args()
 
@@ -110,6 +113,29 @@ def get_logits_labels(data_loader, net):
         logits = torch.cat(logits_list).cuda()
         labels = torch.cat(labels_list).cuda()
     return logits, labels
+
+
+def loss_function_save_name(loss_function,
+                            gamma=1.0,
+                            lamda=1.0,
+                            n_bins=5):
+    res_dict = {
+        'cross_entropy': 'cross_entropy',
+        'focal_loss': 'focal_loss_gamma_' + str(gamma),
+        'focal_loss_gra': 'focal_loss_gra_gamma_' + str(gamma),
+        'focal_loss_adaptive': 'focal_loss_adaptive_gamma_' + str(gamma),
+        'focal_loss_adaptive_gra': 'focal_loss_adaptive_gra_gamma_' + str(gamma),
+        'dual_focal_loss': 'dual_focal_loss_gamma_' + str(gamma),
+        'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
+        'mmce': 'mmce_lamda_' + str(lamda),
+        'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
+        'brier_score': 'brier_score',
+        'bsce': 'bsce_gamma_' + str(gamma),
+        'ece_loss': 'ece_loss_' + str(n_bins),
+        'tlbs': 'tlbs_gamma_' + str(gamma),
+    }
+    res_str = res_dict[loss_function]
+    return res_str
 
 
 if __name__ == "__main__":
@@ -131,8 +157,8 @@ if __name__ == "__main__":
     dataset = args.dataset
     dataset_root = args.dataset_root
     model_name = args.model_name
-    save_loc = "/home/jinxulin/UQ/model/" + args.save_loc + "/epoch/"
-    saved_model_name = args.saved_model_name + ".model"
+    save_loc = "/home/jinxulin/UQ/model/" + args.dataset + '-' + args.model + '-' + args.loss + "/epoch/"
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma) + "_350.model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
