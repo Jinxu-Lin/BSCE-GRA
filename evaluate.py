@@ -190,13 +190,14 @@ if __name__ == "__main__":
 
     # Printing the required evaluation metrics
     if args.log:
-        print (conf_matrix)
-        print ('Test error: ' + str((1 - p_accuracy)))
-        print ('Test NLL: ' + str(p_nll))
-        print ('ECE: ' + str(p_ece))
-        print ('AdaECE: ' + str(p_adaece))
-        print ('Classwise ECE: ' + str(p_cece))
-        print ('Brier Score: ' + str(p_bs))
+        print(conf_matrix)
+        print('Test error: {:.2f}%'.format((1 - p_accuracy) * 100))
+        print('Test NLL: {:.2f}'.format(p_nll * 100))
+        print('ECE: {:.2f}'.format(p_ece * 100))
+        print('AdaECE: {:.2f}'.format(p_adaece * 100))
+        print('Classwise ECE: {:.2f}'.format(p_cece * 100))
+        print('Brier Score: {:.2f}'.format(p_bs * 100))
+
 
 
     scaled_model = ModelWithTemperature(net, args.log)
@@ -216,12 +217,12 @@ if __name__ == "__main__":
     if args.log:
         print ('Optimal temperature: ' + str(T_opt))
         print (conf_matrix)
-        print ('Test error: ' + str((1 - accuracy)))
-        print ('Test NLL: ' + str(nll))
-        print ('ECE: ' + str(ece))
-        print ('AdaECE: ' + str(adaece))
-        print ('Classwise ECE: ' + str(cece))
-        print ('Brier Score: ' + str(bs))
+        print('Test error: {:.2f}%'.format((1 - accuracy) * 100))
+        print('Test NLL: {:.2f}'.format(nll * 100))
+        print('ECE: {:.2f}'.format(ece * 100))
+        print('AdaECE: {:.2f}'.format(adaece * 100))
+        print('Classwise ECE: {:.2f}'.format(cece * 100))
+        print('Brier Score: {:.2f}'.format(bs * 100))
 
     # Test NLL & ECE & AdaECE & Classwise ECE
     print(res_str)
