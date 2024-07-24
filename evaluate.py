@@ -95,6 +95,7 @@ def parseArgs():
                         help="whether to print log data")
     parser.add_argument("--loss", type=str, default='dual_focal_loss')
     parser.add_argument("--gamma", type=float, default=3.0)
+    parser.add_argument("--n_bins", type=int, default=5)
 
 
     return parser.parse_args()
@@ -158,7 +159,7 @@ if __name__ == "__main__":
     dataset_root = args.dataset_root
     model_name = args.model_name
     save_loc = "/home/jinxulin/UQ/model/" + args.dataset + '-' + args.model + '-' + args.loss + "/epoch/"
-    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma) + "_350.model"
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma, args.n_bins) + "_350.model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
