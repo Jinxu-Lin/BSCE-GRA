@@ -6,3 +6,4 @@ tiny-imagenet-200
 .vscode
 wandb
 *run.sh
+model1

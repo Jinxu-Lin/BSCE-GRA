@@ -131,8 +131,8 @@ if __name__ == "__main__":
     dataset = args.dataset
     dataset_root = args.dataset_root
     model_name = args.model_name
-    save_loc = args.save_loc
-    saved_model_name = args.saved_model_name
+    save_loc = "/home/jinxulin/UQ/model/" + args.save_loc + "/epoch/"
+    saved_model_name = args.saved_model_name + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
@@ -169,7 +169,9 @@ if __name__ == "__main__":
     net.cuda()
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     cudnn.benchmark = True
-    net.load_state_dict(torch.load(args.save_loc + args.saved_model_name))
+
+    model_path = os.path.join(save_loc, saved_model_name)
+    net.load_state_dict(torch.load(model_path))
 
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = ECELoss().cuda()
