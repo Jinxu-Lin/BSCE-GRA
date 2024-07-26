@@ -114,7 +114,7 @@ class TLBSLoss(nn.Module):
                           torch.zeros(pred_labels.shape).to(self.device))
 
         with torch.no_grad():
-            c_minus_r = (correct_mask - predicted_probs) ** self.gamma
+            c_minus_r = (correct_mask - predicted_probs).abs() ** self.gamma
         
         loss = -1 * c_minus_r * logpt
 
