@@ -49,8 +49,7 @@ class MMCE(nn.Module):
         numerator = dot_product*kernel_prob_pairs
         #return torch.sum(numerator)/correct_mask.shape[0]**2
         return torch.sum(numerator)/torch.pow(torch.tensor(correct_mask.shape[0]).type(torch.FloatTensor),2)
-
-
+    
 
 class MMCE_weighted(nn.Module):
     """
