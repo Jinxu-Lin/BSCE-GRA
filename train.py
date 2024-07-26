@@ -214,7 +214,7 @@ if __name__ == "__main__":
     if args.model_name is None:
         args.model_name = args.model
     model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
-
+    os.environ["WANDB_MODE"] = args.wandb_mode
     run = wandb.init(project='Uncertainty Quality', name=model_name, config=args)
 
     cuda = False
@@ -359,7 +359,7 @@ if __name__ == "__main__":
             print('New best error: %.4f' % (1 - best_val_acc))
             save_name = save_loc + '/best/' + \
                         args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda) + \
+                        loss_function_save_name(args.loss_function, args.gamma_schedule, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
                         '_best_' + \
                         str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
@@ -367,7 +367,7 @@ if __name__ == "__main__":
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \
                         args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda) + \
+                        loss_function_save_name(args.loss_function, args.gamma_schedule, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
                         '_' + str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
 
