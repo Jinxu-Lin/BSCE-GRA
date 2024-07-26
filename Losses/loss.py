@@ -6,7 +6,7 @@ Implementation of the following loss functions:
 4. Cross Entropy + MMCE
 5. Brier Score
 '''
-
+import torch
 from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, DualFocalLoss, DualFocalLossGra
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
@@ -46,6 +46,12 @@ def mmce(logits, targets, **kwargs):
     ce = F.cross_entropy(logits, targets)
     mmce = MMCE(kwargs['device'])(logits, targets)
     return ce + (kwargs['lamda'] * mmce)
+
+def mmce_gra(logits, targets, **kwargs):
+    ce = F.cross_entropy(logits, targets)
+    with torch.no_grad():
+        mmce = MMCE(kwargs['device'])(logits, targets)
+    return mmce*ce
 
 def mmce_weighted(logits, targets, **kwargs):
     ce = F.cross_entropy(logits, targets)
