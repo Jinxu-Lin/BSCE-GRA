@@ -6,6 +6,7 @@ import argparse
 from torch import nn
 import matplotlib.pyplot as plt
 import torch.backends.cudnn as cudnn
+import numpy as np
 
 # Import dataloaders
 import Data.cifar10 as cifar10
@@ -20,7 +21,7 @@ from Net.densenet import densenet121
 
 # Import metrics to compute
 from Metrics.metrics import test_classification_net_logits
-from Metrics.metrics import ECELoss, AdaptiveECELoss, ClasswiseECELoss, BrierScoreLoss
+from Metrics.metrics import ECELoss, AdaptiveECELoss, ClasswiseECELoss, BrierScoreLoss, ConfAccLoss
 
 # Import temperature scaling and NLL utilities
 from temperature_scaling import ModelWithTemperature
@@ -96,6 +97,7 @@ def parseArgs():
     parser.add_argument("--loss", type=str, default='dual_focal_loss')
     parser.add_argument("--gamma", type=float, default=3.0)
     parser.add_argument("--n_bins", type=int, default=5)
+    parser.add_argument("--epoch", type=int, default=350)
 
 
     return parser.parse_args()
@@ -129,6 +131,7 @@ def loss_function_save_name(loss_function,
         'dual_focal_loss': 'dual_focal_loss_gamma_' + str(gamma),
         'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
         'mmce': 'mmce_lamda_' + str(lamda),
+        'mmce_gra': 'mmce_gra',
         'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
         'brier_score': 'brier_score',
         'bsce': 'bsce_gamma_' + str(gamma),
@@ -159,7 +162,7 @@ if __name__ == "__main__":
     dataset_root = args.dataset_root
     model_name = args.model_name
     save_loc = "/home/jinxulin/UQ/model/" + args.dataset + '-' + args.model + '-' + args.loss + "/epoch/"
-    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma, args.n_bins) + "_350.model"
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma, args.n_bins) + "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
@@ -200,6 +203,7 @@ if __name__ == "__main__":
     model_path = os.path.join(save_loc, saved_model_name)
     net.load_state_dict(torch.load(model_path))
 
+    conf_acc = ConfAccLoss().cuda()
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = ECELoss().cuda()
     adaece_criterion = AdaptiveECELoss().cuda()
@@ -209,23 +213,27 @@ if __name__ == "__main__":
     logits, labels = get_logits_labels(test_loader, net)
     conf_matrix, p_accuracy, _, _, _ = test_classification_net_logits(logits, labels)
 
+    bin_stats = conf_acc(logits, labels)
+    bin_stats = bin_stats.cpu().numpy()
+    np.save(save_loc+str(args.epoch)+'_bin_stats.npy', bin_stats)
+
     p_ece = ece_criterion(logits, labels).item()
-    p_adaece = adaece_criterion(logits, labels).item()
-    p_cece = cece_criterion(logits, labels).item()
-    p_nll = nll_criterion(logits, labels).item()
-    p_bs = bs_criterion(logits,labels).item()
+    # p_adaece = adaece_criterion(logits, labels).item()
+    # p_cece = cece_criterion(logits, labels).item()
+    # p_nll = nll_criterion(logits, labels).item()
+    # p_bs = bs_criterion(logits,labels).item()
 
-    res_str = '{:s}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(saved_model_name,  1-p_accuracy,  p_nll,  p_ece,  p_adaece, p_cece, p_bs)
+    # res_str = '{:s}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(saved_model_name,  1-p_accuracy,  p_nll,  p_ece,  p_adaece, p_cece, p_bs)
 
-    # Printing the required evaluation metrics
-    if args.log:
-        print(conf_matrix)
-        print('Test error: {:.2f}%'.format((1 - p_accuracy) * 100))
-        # print('Test NLL: {:.2f}'.format(p_nll * 100))
-        print('ECE: {:.2f}'.format(p_ece * 100))
-        print('AdaECE: {:.2f}'.format(p_adaece * 100))
-        print('Classwise ECE: {:.2f}'.format(p_cece * 100))
-        print('Brier Score: {:.2f}'.format(p_bs * 100))
+    # # Printing the required evaluation metrics
+    # if args.log:
+    #     print(conf_matrix)
+    #     print('Test error: {:.2f}%'.format((1 - p_accuracy) * 100))
+    #     # print('Test NLL: {:.2f}'.format(p_nll * 100))
+    #     print('ECE: {:.2f}'.format(p_ece * 100))
+    #     print('AdaECE: {:.2f}'.format(p_adaece * 100))
+    #     print('Classwise ECE: {:.2f}'.format(p_cece * 100))
+    #     print('Brier Score: {:.2f}'.format(p_bs * 100))
 
 
 

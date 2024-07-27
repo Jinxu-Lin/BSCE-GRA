@@ -273,3 +273,29 @@ class ClasswiseECELoss(nn.Module):
         sce = torch.mean(per_class_sce)
         return sce
 
+class ConfAccLoss(nn.Module):
+    def __init__(self, n_bins=15):
+        super(ConfAccLoss, self).__init__()
+        bin_boundaries = torch.linspace(0, 1, n_bins + 1)
+        self.bin_lowers = bin_boundaries[:-1]
+        self.bin_uppers = bin_boundaries[1:]
+
+    def forward(self, logits, labels):
+        softmaxes = F.softmax(logits, dim=1)
+        confidences, predictions = torch.max(softmaxes, 1)
+        accuracies = predictions.eq(labels)
+
+        bin_stats = torch.zeros((self.bin_lowers.size(0), 2), device=logits.device)
+
+        # Iterate over each bin to calculate correct and incorrect predictions
+        for i, (bin_lower, bin_upper) in enumerate(zip(self.bin_lowers, self.bin_uppers)):
+            if i == len(self.bin_lowers) - 1:  # 对于最后一个bin
+                in_bin = (confidences >= bin_lower) & (confidences <= bin_upper)
+            else:
+                in_bin = (confidences >= bin_lower) & (confidences < bin_upper)
+            if in_bin.any():
+                bin_stats[i, 0] = accuracies[in_bin].sum().item()  # Count correct predictions
+                bin_stats[i, 1] = in_bin.sum().item() - bin_stats[i, 0]  # Count incorrect predictions
+
+
+        return bin_stats
