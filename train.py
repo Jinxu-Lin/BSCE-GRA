@@ -179,7 +179,7 @@ def parseArgs():
                         dest="gamma_schedule_step2", help="2nd step for gamma schedule")
     parser.add_argument("--bsce-norm", type=int,default=1, 
                         dest="bsce_norm", help="Normalization for bsce")
-    parser.add_argument("--size-average", type=bool, dest="size_average", default=False,
+    parser.add_argument("--size-average", action="store_true", dest="size_average",
                         help="Whether to take mean of loss instead of sum")
 
     parser.add_argument("--log-interval", type=int, default=log_interval,
