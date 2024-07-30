@@ -135,6 +135,7 @@ def loss_function_save_name(loss_function,
         'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
         'brier_score': 'brier_score',
         'bsce': 'bsce_gamma_' + str(gamma),
+        'bsce_gra': 'bsce_gra_gamma_' + str(gamma),
         'ece_loss': 'ece_loss_' + str(n_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
     }
@@ -218,22 +219,22 @@ if __name__ == "__main__":
     np.save(save_loc+str(args.epoch)+'_bin_stats.npy', bin_stats)
 
     p_ece = ece_criterion(logits, labels).item()
-    # p_adaece = adaece_criterion(logits, labels).item()
-    # p_cece = cece_criterion(logits, labels).item()
-    # p_nll = nll_criterion(logits, labels).item()
-    # p_bs = bs_criterion(logits,labels).item()
+    p_adaece = adaece_criterion(logits, labels).item()
+    p_cece = cece_criterion(logits, labels).item()
+    p_nll = nll_criterion(logits, labels).item()
+    p_bs = bs_criterion(logits,labels).item()
 
-    # res_str = '{:s}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(saved_model_name,  1-p_accuracy,  p_nll,  p_ece,  p_adaece, p_cece, p_bs)
+    res_str = '{:s}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(saved_model_name,  1-p_accuracy,  p_nll,  p_ece,  p_adaece, p_cece, p_bs)
 
-    # # Printing the required evaluation metrics
-    # if args.log:
-    #     print(conf_matrix)
-    #     print('Test error: {:.2f}%'.format((1 - p_accuracy) * 100))
-    #     # print('Test NLL: {:.2f}'.format(p_nll * 100))
-    #     print('ECE: {:.2f}'.format(p_ece * 100))
-    #     print('AdaECE: {:.2f}'.format(p_adaece * 100))
-    #     print('Classwise ECE: {:.2f}'.format(p_cece * 100))
-    #     print('Brier Score: {:.2f}'.format(p_bs * 100))
+    # Printing the required evaluation metrics
+    if args.log:
+        print(conf_matrix)
+        print('Test error: {:.2f}%'.format((1 - p_accuracy) * 100))
+        # print('Test NLL: {:.2f}'.format(p_nll * 100))
+        print('ECE: {:.2f}'.format(p_ece * 100))
+        print('AdaECE: {:.2f}'.format(p_adaece * 100))
+        print('Classwise ECE: {:.2f}'.format(p_cece * 100))
+        print('Brier Score: {:.2f}'.format(p_bs * 100))
 
 
 
