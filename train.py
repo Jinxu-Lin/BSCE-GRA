@@ -80,6 +80,7 @@ def loss_function_save_name(loss_function,
         'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
         'brier_score': 'brier_score',
         'bsce': 'bsce_gamma_' + str(gamma),
+        'bsce_gra': 'bsce_gamma_gra' + str(gamma),
         'ece_loss': 'ece_loss_' + str(n_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
     }
