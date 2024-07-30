@@ -148,7 +148,8 @@ class BSCELossAdaptiveGra(nn.Module):
         target_one_hot = torch.FloatTensor(input.shape).to(target.get_device())
         target_one_hot.zero_()
         target_one_hot.scatter_(1, target, 1)
-        gamma = self.get_gamma_list(pt)
+        p = logpt.exp()
+        gamma = self.get_gamma_list(p)
         with torch.no_grad():
             diff = torch.norm(target_one_hot - pt, p=self.norm, dim=1) ** gamma
         loss = -1 * diff * logpt
