@@ -7,6 +7,7 @@ import torch
 import torch.utils.data
 import argparse
 import torch.backends.cudnn as cudnn
+import torchvision
 import random
 import json
 import sys

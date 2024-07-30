@@ -94,6 +94,47 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.fc(out) / self.temp
         return out
+    
+
+class ResNetImagenet(nn.Module):
+    def __init__(self, block, num_blocks, num_classes=10, temp=1.0):
+        super(ResNetImagenet, self).__init__()
+        self.in_planes = 64
+
+        self.conv1 = nn.Conv2d(3, self.in_planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(self.in_planes)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512*block.expansion, num_classes)
+        self.temp = temp
+
+    def _make_layer(self, block, planes, num_blocks, stride):
+        strides = [stride] + [1]*(num_blocks-1)
+        layers = []
+        for stride in strides:
+            layers.append(block(self.in_planes, planes, stride))
+            self.in_planes = planes * block.expansion
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = F.relu(out)
+        out = self.maxpool(out)
+
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        
+        out = self.avgpool(out)
+        out = torch.flatten(out, 1)
+        out = self.fc(out) / self.temp
+        return out
 
 
 def resnet18(temp=1.0, **kwargs):
@@ -107,17 +148,26 @@ def resnet34(temp=1.0, **kwargs):
 
 
 def resnet50(temp=1.0, **kwargs):
-    model = ResNet(Bottleneck, [3, 4, 6, 3], temp=temp, **kwargs)
+    if kwargs["num_classes"] == 200:
+        model = ResNetImagenet(Bottleneck, [3, 4, 6, 3], temp=temp, **kwargs)
+    else:
+        model = ResNet(Bottleneck, [3, 4, 6, 3], temp=temp, **kwargs)
     return model
 
 
 def resnet101(temp=1.0, **kwargs):
-    model = ResNet(Bottleneck, [3, 4, 23, 3], temp=temp, **kwargs)
+    if kwargs["num_classes"] == 200:
+        model = ResNetImagenet(Bottleneck, [3, 4, 23, 3], temp=temp, **kwargs)
+    else:
+        model = ResNet(Bottleneck, [3, 4, 23, 3], temp=temp, **kwargs)
     return model
 
 
 def resnet110(temp=1.0, **kwargs):
-    model = ResNet(Bottleneck, [3, 4, 26, 3], temp=temp, **kwargs)
+    if kwargs["num_classes"] == 200:
+        model = ResNetImagenet(Bottleneck, [3, 4, 26, 3], temp=temp, **kwargs)
+    else:
+        model = ResNet(Bottleneck, [3, 4, 26, 3], temp=temp, **kwargs)
     return model
 
 
