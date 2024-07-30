@@ -95,6 +95,7 @@ def test_single_epoch(epoch,
                       lamda=1.0,
                       n_bins=5,
                       bsce_norm=1,
+                      size_average=False,
                       ):
     '''
     Util method for testing a model for a single epoch.
@@ -111,7 +112,7 @@ def test_single_epoch(epoch,
             if ('mmce' in loss_function):
                 loss += (len(data) * loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, device=device).item())
             else:
-                loss += loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, device=device).item()
+                loss += loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, size_average=size_average, device=device).item()
             num_samples += len(data)
 
     print('======> Test set loss: {:.4f}'.format(
