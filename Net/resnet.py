@@ -137,6 +137,7 @@ class ResNetImagenet(nn.Module):
         return out
 
 
+
 def resnet18(temp=1.0, **kwargs):
     model = ResNet(BasicBlock, [2, 2, 2, 2], temp=temp, **kwargs)
     return model
