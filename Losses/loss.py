@@ -65,7 +65,7 @@ def bsce(logits, targets, **kwargs):
     return BSCELoss(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'])(logits, targets)
 
 def bsce_gra(logits, targets, **kwargs):
-    return BSCELossGra(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'])(logits, targets)
+    return BSCELossGra(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'], size_average=kwargs['size_average'])(logits, targets)
 
 def bsce_adaptive_gra(logits, targets, **kwargs):
     return BSCELossAdaptiveGra(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'], device=kwargs['device'])(logits, targets)

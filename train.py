@@ -179,6 +179,8 @@ def parseArgs():
                         dest="gamma_schedule_step2", help="2nd step for gamma schedule")
     parser.add_argument("--bsce-norm", type=int,default=1, 
                         dest="bsce_norm", help="Normalization for bsce")
+    parser.add_argument("--size-average", type=bool, dest="size_average", default=False,
+                        help="Whether to take mean of loss instead of sum")
 
     parser.add_argument("--log-interval", type=int, default=log_interval,
                         dest="log_interval", help="Log Interval on Terminal")
@@ -320,6 +322,7 @@ if __name__ == "__main__":
                                         lamda=args.lamda,
                                         n_bins=args.n_bins,
                                         bsce_norm=args.bsce_norm,
+                                        size_average=args.size_average,
                                         loss_mean=args.loss_mean)
         val_loss = test_single_epoch(epoch,
                                      net,
