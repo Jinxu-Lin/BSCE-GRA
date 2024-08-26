@@ -82,7 +82,7 @@ def loss_function_save_name(loss_function,
         'brier_score': 'brier_score',
         'bsce': 'bsce_gamma_' + str(gamma),
         'bsce_gra': 'bsce_gra_gamma_' + str(gamma),
-        'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma' + str(gamma),
+        'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma),
         'ece_loss': 'ece_loss_' + str(n_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
     }
