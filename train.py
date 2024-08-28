@@ -25,7 +25,7 @@ from Net.resnet import resnet50, resnet110
 from Net.resnet_tiny_imagenet import resnet50 as resnet50_ti
 from Net.wide_resnet import wide_resnet_cifar
 from Net.densenet import densenet121
-
+from Net.vit import vit
 # Import loss functions
 from Losses.loss import cross_entropy, focal_loss, focal_loss_adaptive
 from Losses.loss import mmce, mmce_weighted
@@ -56,7 +56,8 @@ models = {
     'resnet50_ti': resnet50_ti,
     'resnet110': resnet110,
     'wide_resnet': wide_resnet_cifar,
-    'densenet121': densenet121
+    'densenet121': densenet121,
+    'vit': vit
 }
 
 
