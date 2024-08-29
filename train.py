@@ -224,8 +224,8 @@ if __name__ == "__main__":
     if args.model_name is None:
         args.model_name = args.model
     model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
-    # os.environ["WANDB_MODE"] = args.wandb_mode
-    if args.wandb_mode:
+
+    if args.wandb_offline:
         os.environ["WANDB_MODE"] = "offline"
     else:
         os.environ["WANDB_MODE"] = "online"
