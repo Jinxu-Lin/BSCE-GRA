@@ -43,9 +43,11 @@ class CrossEntropyExp(nn.Module):
         pt = logpt.exp()
 
         loss = -1 * logpt
-        loss = loss * torch.exp(
-            torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
-        ) - loss
+        with torch.no_grad():
+            weight = torch.exp(
+                torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
+            ) - 1
+        loss = loss * weight
 
         if self.size_average: return loss.mean()
         else: return loss.sum()

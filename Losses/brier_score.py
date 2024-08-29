@@ -49,7 +49,6 @@ class BrierScore(nn.Module):
         loss = torch.sum(squared_diff) / float(input.shape[0])
         return loss
     
-    
 class BrierScoreExp(nn.Module):
     def __init__(self, temperature=1.0):
         super(BrierScoreExp, self).__init__()
@@ -70,12 +69,12 @@ class BrierScoreExp(nn.Module):
         
         loss = torch.sum(squared_diff) / float(input.shape[0])
     
-        loss = loss * torch.exp(
-            torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
-        ) - loss
+        with torch.no_grad():
+            weight = torch.exp(
+                torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
+            ) - 1
 
-        return loss
-    
+        return loss * weight
 
 class BSCELoss(nn.Module):
     def __init__(self, gamma=0, norm=1, size_average=False):
