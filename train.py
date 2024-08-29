@@ -63,6 +63,7 @@ models = {
 
 def loss_function_save_name(loss_function,
                             scheduled=False,
+                            temperature=1.0,
                             gamma=1.0,
                             gamma1=1.0,
                             gamma2=1.0,
@@ -71,7 +72,7 @@ def loss_function_save_name(loss_function,
                             n_bins=5):
     res_dict = {
         'cross_entropy': 'cross_entropy',
-        'cross_entropy_exp': 'cross_entropy_exp',
+        'cross_entropy_exp': 'cross_entropy_exp_'+str(temperature),
         'focal_loss': 'focal_loss_gamma_' + str(gamma),
         'focal_loss_gra': 'focal_loss_gra_gamma_' + str(gamma),
         'focal_loss_adaptive': 'focal_loss_adaptive_gamma_' + str(gamma),
@@ -380,7 +381,7 @@ if __name__ == "__main__":
             print('New best error: %.4f' % (1 - best_val_acc))
             save_name = save_loc + '/best/' + \
                         args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
+                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
                         '_best_' + \
                         str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
@@ -388,7 +389,7 @@ if __name__ == "__main__":
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \
                         args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
+                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
                         '_' + str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
 
