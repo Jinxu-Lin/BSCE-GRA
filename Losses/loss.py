@@ -20,7 +20,7 @@ def cross_entropy(logits, targets, **kwargs):
     return F.cross_entropy(logits, targets, reduction='sum')
 
 def cross_entropy_exp_minus_cross_entropy(logits, targets, **kwargs):
-    return torch.exp(F.cross_entropy(logits, targets, reduction='sum')) - F.cross_entropy(logits, targets, reduction='sum')
+    return torch.exp(F.cross_entropy(logits, targets, reduction='sum'))
 
 def focal_loss(logits, targets, **kwargs):
     return FocalLoss(gamma=kwargs['gamma'])(logits, targets)
