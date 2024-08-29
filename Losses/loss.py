@@ -14,13 +14,14 @@ from Losses.mmce import MMCE, MMCE_weighted
 from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpMinusBrierScore, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
 from Losses.ece import ECELoss
 from Losses.dece import DECE
+from Losses.ce import CrossEntropy, CrossEntropyExpMinusCrossEntropy
 
 
 def cross_entropy(logits, targets, **kwargs):
-    return F.cross_entropy(logits, targets, reduction='sum')
+    return CrossEntropy()(logits, targets, reduction='sum')
 
 def cross_entropy_exp_minus_cross_entropy(logits, targets, **kwargs):
-    return torch.exp(F.cross_entropy(logits, targets, reduction='sum'))
+    return CrossEntropyExpMinusCrossEntropy()(logits, targets)
 
 def focal_loss(logits, targets, **kwargs):
     return FocalLoss(gamma=kwargs['gamma'])(logits, targets)
