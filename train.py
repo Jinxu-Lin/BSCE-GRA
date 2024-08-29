@@ -313,6 +313,7 @@ if __name__ == "__main__":
         scheduler.step()
 
     best_val_acc = 0
+    best_ece = 1.0
     for epoch in range(start_epoch, num_epochs):
         scheduler.step()
         if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
@@ -379,16 +380,17 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
-            print('New best error: %.4f' % (1 - best_val_acc))
+
+        if ece < best_ece:
+            best_ece = ece
+            print('New best error: %.4f' % best_ece)
             save_name = save_loc + '/best/' + \
                         args.model_name + '_' + \
                         loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
-                        '_best_' + \
+                        '_best_ece_' + \
                         str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
-
+            
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \
                         args.model_name + '_' + \
