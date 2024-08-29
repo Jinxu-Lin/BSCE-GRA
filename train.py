@@ -36,6 +36,7 @@ from train_utils import train_single_epoch, test_single_epoch
 
 # Import validation metrics
 from Metrics.metrics import test_classification_net
+from Metrics.metrics import ECELoss
 
 
 dataset_num_classes = {
@@ -357,13 +358,15 @@ if __name__ == "__main__":
                                       lamda=args.lamda,
                                       n_bins=args.n_bins,                            
                                      bsce_norm=args.bsce_norm,)
-        _, val_acc, _, _, _ = test_classification_net(net, val_loader, device)
+        ece_criterion = ECELoss().cuda()
+        _, val_acc, ece, _, _, _ = test_classification_net(net, val_loader, device, ece_criterion)
         wandb.log(
             {
                 "epoch": epoch,
                 "train_loss": train_loss,
                 "val_loss": val_loss,
-                "val_acc": val_acc
+                "val_acc": val_acc,
+                "val_ece": ece
             }
         )
 

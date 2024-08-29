@@ -133,7 +133,7 @@ def test_classification_net_logits(logits, labels):
         predictions_list, confidence_vals_list
 
 
-def test_classification_net(model, data_loader, device):
+def test_classification_net(model, data_loader, device, ece_criterion):
     '''
     This function reports classification accuracy and confusion matrix over a dataset.
     '''
@@ -154,8 +154,8 @@ def test_classification_net(model, data_loader, device):
             predictions_list.extend(predictions.cpu().numpy().tolist())
             confidence_vals_list.extend(confidence_vals.cpu().numpy().tolist())
     accuracy = accuracy_score(labels_list, predictions_list)
-
-    return confusion_matrix(labels_list, predictions_list), accuracy, labels_list,\
+    ece = ece_criterion(logits, label)
+    return confusion_matrix(labels_list, predictions_list), accuracy, ece, labels_list,\
         predictions_list, confidence_vals_list
 
 
