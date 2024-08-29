@@ -11,7 +11,7 @@ from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, DualFocalLoss, DualFocalLossGra
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
 from Losses.mmce import MMCE, MMCE_weighted
-from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpMinusBrierScore, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
+from Losses.brier_score import BrierScore, BrierScoreExp, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
 from Losses.ece import ECELoss
 from Losses.dece import DECE
 from Losses.ce import CrossEntropy, CrossEntropyExp
