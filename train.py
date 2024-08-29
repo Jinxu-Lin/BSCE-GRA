@@ -383,7 +383,7 @@ if __name__ == "__main__":
 
         if ece < best_ece:
             best_ece = ece
-            print('New best error: %.4f' % best_ece)
+            print('New best ece: %.4f' % best_ece)
             save_name = save_loc + '/best/' + \
                         args.model_name + '_' + \
                         loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
