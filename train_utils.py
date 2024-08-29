@@ -6,7 +6,7 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 
-from Losses.loss import cross_entropy, cross_entropy_exp_minus_cross_entropy, focal_loss, focal_loss_gra, focal_loss_adaptive, focal_loss_adaptive_gra
+from Losses.loss import cross_entropy, cross_entropy_exp, focal_loss, focal_loss_gra, focal_loss_adaptive, focal_loss_adaptive_gra
 from Losses.loss import dual_focal_loss, dual_focal_loss_gra
 from Losses.loss import mmce, mmce_weighted, mmce_gra
 from Losses.loss import brier_score, brier_score_exp, brier_score_exp_minus_brier_score, bsce, bsce_gra, bsce_adaptive_gra, tlbs
@@ -15,7 +15,7 @@ from Losses.loss import ece_loss, dece
 
 loss_function_dict = {
     'cross_entropy': cross_entropy,
-    'cross_entropy_exp_minus_cross_entropy': cross_entropy_exp_minus_cross_entropy,
+    'cross_entropy_exp': cross_entropy_exp,
     'focal_loss': focal_loss,
     'focal_loss_gra': focal_loss_gra,
     'focal_loss_adaptive': focal_loss_adaptive,
@@ -48,6 +48,7 @@ def train_single_epoch(epoch,
                        n_bins=5,
                        bsce_norm=1,
                        size_average=False,
+                       temperature=1.0,
                        loss_mean=False):
     '''
     Util method for training a model for a single epoch.
@@ -66,7 +67,7 @@ def train_single_epoch(epoch,
         if ('mmce' in loss_function):
             loss = (len(data) * loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, device=device))
         else:
-            loss = loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, size_average=size_average, device=device)
+            loss = loss_function_dict[loss_function](logits, labels, temperature=temperature, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, size_average=size_average, device=device)
 
         if loss_mean:
             loss = loss / len(data)
@@ -99,6 +100,7 @@ def test_single_epoch(epoch,
                       n_bins=5,
                       bsce_norm=1,
                       size_average=False,
+                      temperature=1.0,
                       ):
     '''
     Util method for testing a model for a single epoch.
@@ -115,7 +117,7 @@ def test_single_epoch(epoch,
             if ('mmce' in loss_function):
                 loss += (len(data) * loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, device=device).item())
             else:
-                loss += loss_function_dict[loss_function](logits, labels, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, size_average=size_average, device=device).item()
+                loss += loss_function_dict[loss_function](logits, labels, temperature=temperature, gamma=gamma, lamda=lamda, n_bins=n_bins, bsce_norm=bsce_norm, size_average=size_average, device=device).item()
             num_samples += len(data)
 
     print('======> Test set loss: {:.4f}'.format(

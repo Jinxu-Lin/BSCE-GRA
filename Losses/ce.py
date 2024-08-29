@@ -25,11 +25,11 @@ class CrossEntropy(nn.Module):
         if self.size_average: return loss.mean()
         else: return loss.sum()
 
-class CrossEntropyExpMinusCrossEntropy(nn.Module):
-    def __init__(self, size_average=False):
-        super(CrossEntropyExpMinusCrossEntropy, self).__init__()
+class CrossEntropyExp(nn.Module):
+    def __init__(self, temperature=1.0, size_average=False):
+        super(CrossEntropyExp, self).__init__()
         self.size_average = size_average
-
+        self.temperature = temperature
     def forward(self, input, target):
         if input.dim()>2:
             input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
@@ -43,7 +43,9 @@ class CrossEntropyExpMinusCrossEntropy(nn.Module):
         pt = logpt.exp()
 
         loss = -1 * logpt
-        loss = torch.exp(loss) - loss
+        loss = loss * torch.exp(
+            torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
+        )
 
         if self.size_average: return loss.mean()
         else: return loss.sum()

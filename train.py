@@ -71,7 +71,7 @@ def loss_function_save_name(loss_function,
                             n_bins=5):
     res_dict = {
         'cross_entropy': 'cross_entropy',
-        'cross_entropy_exp_minus_cross_entropy': 'cross_entropy_exp_minus_cross_entropy',
+        'cross_entropy_exp': 'cross_entropy_exp',
         'focal_loss': 'focal_loss_gamma_' + str(gamma),
         'focal_loss_gra': 'focal_loss_gra_gamma_' + str(gamma),
         'focal_loss_adaptive': 'focal_loss_adaptive_gamma_' + str(gamma),
@@ -165,6 +165,8 @@ def parseArgs():
     parser.add_argument("--loss-mean", action="store_true", dest="loss_mean",
                         help="whether to take mean of loss instead of sum to train")
     parser.set_defaults(loss_mean=False)
+    parser.add_argument("--temperature", type=float, default=1.0,
+                        dest="temperature", help="Temperature for cross entropy")
     parser.add_argument("--gamma", type=float, default=gamma,
                         dest="gamma", help="Gamma for focal components")
     parser.add_argument("--gamma2", type=float, default=gamma2,
@@ -327,6 +329,7 @@ if __name__ == "__main__":
                                         optimizer,
                                         device,
                                         loss_function=args.loss_function,
+                                        temperature=args.temperature,
                                         gamma=gamma,
                                         lamda=args.lamda,
                                         n_bins=args.n_bins,
@@ -338,6 +341,7 @@ if __name__ == "__main__":
                                      val_loader,
                                      device,
                                      loss_function=args.loss_function,
+                                     temperature=args.temperature,
                                      gamma=gamma,
                                      lamda=args.lamda,
                                      n_bins=args.n_bins,                            
@@ -347,6 +351,7 @@ if __name__ == "__main__":
                                       val_loader,
                                       device,
                                       loss_function=args.loss_function,
+                                      temperature=args.temperature,
                                       gamma=gamma,
                                       lamda=args.lamda,
                                       n_bins=args.n_bins,                            
