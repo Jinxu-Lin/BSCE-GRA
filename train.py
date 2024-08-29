@@ -233,7 +233,7 @@ if __name__ == "__main__":
         os.environ["WANDB_MODE"] = "offline"
     else:
         os.environ["WANDB_MODE"] = "online"
-    run = wandb.init(entity="Personal",project='ReweightingGradientCalibration', name=model_name, config=args)
+    run = wandb.init(entity="jinxulin2000",project='ReweightingGradientCalibration', name=model_name, config=args)
 
     cuda = False
     if (torch.cuda.is_available() and args.gpu):
