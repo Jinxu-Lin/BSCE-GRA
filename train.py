@@ -82,6 +82,7 @@ def loss_function_save_name(loss_function,
         'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
         'brier_score': 'brier_score',
         'brier_score_exp': 'brier_score_exp',
+        'brier_score_exp_minus_brier_score': 'brier_score_exp_minus_brier_score',
         'bsce': 'bsce_gamma_' + str(gamma),
         'bsce_gra': 'bsce_gra_gamma_' + str(gamma),
         'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma),
@@ -206,8 +207,9 @@ def parseArgs():
                         dest="first_milestone", help="First milestone to change lr")
     parser.add_argument("--second-milestone", type=int, default=second_milestone,
                         dest="second_milestone", help="Second milestone to change lr")
-    parser.add_argument("--wandb_mode", type=str, default='dryrun', dest="wandb_mode",)
 
+    parser.add_argument("--wandb_offline", action="store_true", dest="wandb_offline",
+                        help="Run wandb in offline mode")
     return parser.parse_args()
 
 
@@ -222,7 +224,11 @@ if __name__ == "__main__":
     if args.model_name is None:
         args.model_name = args.model
     model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
-    os.environ["WANDB_MODE"] = args.wandb_mode
+    # os.environ["WANDB_MODE"] = args.wandb_mode
+    if args.wandb_mode:
+        os.environ["WANDB_MODE"] = "offline"
+    else:
+        os.environ["WANDB_MODE"] = "online"
     run = wandb.init(project='Uncertainty Quality', name=model_name, config=args)
 
     cuda = False

@@ -11,7 +11,7 @@ from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, DualFocalLoss, DualFocalLossGra
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
 from Losses.mmce import MMCE, MMCE_weighted
-from Losses.brier_score import BrierScore, BrierScoreExp, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
+from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpMinusBrierScore, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
 from Losses.ece import ECELoss
 from Losses.dece import DECE
 
@@ -63,6 +63,9 @@ def brier_score(logits, targets, **kwargs):
 
 def brier_score_exp(logits, targets, **kwargs):
     return BrierScoreExp()(logits, targets)
+
+def brier_score_exp_minus_brier_score(logits, targets, **kwargs):
+    return BrierScoreExpMinusBrierScore()(logits, targets)
 
 def bsce(logits, targets, **kwargs):
     return BSCELoss(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'])(logits, targets)
