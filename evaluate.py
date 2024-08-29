@@ -95,6 +95,7 @@ def parseArgs():
     parser.add_argument("-log", action="store_true", dest="log",
                         help="whether to print log data")
     parser.add_argument("--loss", type=str, default='dual_focal_loss')
+    parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--gamma", type=float, default=3.0)
     parser.add_argument("--n_bins", type=int, default=5)
     parser.add_argument("--epoch", type=int, default=350)
@@ -119,11 +120,13 @@ def get_logits_labels(data_loader, net):
 
 
 def loss_function_save_name(loss_function,
+                            temperature=1.0,
                             gamma=1.0,
                             lamda=1.0,
                             n_bins=5):
     res_dict = {
         'cross_entropy': 'cross_entropy',
+        'cross_entropy_exp': 'cross_entropy_exp_temperature_' + str(temperature),
         'cross_entropy_exp_minus_cross_entropy': 'cross_entropy_exp_minus_cross_entropy',
         'focal_loss': 'focal_loss_gamma_' + str(gamma),
         'focal_loss_gra': 'focal_loss_gra_gamma_' + str(gamma),
@@ -167,7 +170,7 @@ if __name__ == "__main__":
     dataset_root = args.dataset_root
     model_name = args.model_name
     save_loc = "/home/jinxulin/UQ/model/" + args.dataset + '-' + args.model + '-' + args.loss + "/epoch/"
-    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma, args.n_bins) + "_" + str(args.epoch) + ".model"
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.temperature, args.gamma, args.n_bins) + "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
