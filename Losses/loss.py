@@ -66,10 +66,7 @@ def brier_score(logits, targets, **kwargs):
     return BrierScore()(logits, targets)
 
 def brier_score_exp(logits, targets, **kwargs):
-    return BrierScoreExp()(logits, targets)
-
-def brier_score_exp_minus_brier_score(logits, targets, **kwargs):
-    return BrierScoreExpMinusBrierScore()(logits, targets)
+    return BrierScoreExp(temperature=kwargs['temperature'])(logits, targets)
 
 def bsce(logits, targets, **kwargs):
     return BSCELoss(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'])(logits, targets)
