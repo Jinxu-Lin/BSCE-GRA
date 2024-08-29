@@ -308,6 +308,7 @@ if __name__ == "__main__":
     val_set_loss = {}
     test_set_loss = {}
     val_set_err = {}
+    val_set_ece = {}
 
     for epoch in range(0, start_epoch):
         scheduler.step()
@@ -375,11 +376,11 @@ if __name__ == "__main__":
         val_set_loss[epoch] = val_loss
         test_set_loss[epoch] = test_loss
         val_set_err[epoch] = 1 - val_acc
+        val_set_ece[epoch] = ece
 
         save_loc = os.path.join(args.save_loc, model_name)
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
-
 
         if ece < best_ece:
             best_ece = ece
@@ -410,6 +411,9 @@ if __name__ == "__main__":
 
     with open(save_name[:save_name.rfind('_')] + '_val_error.json', 'a') as ft:
         json.dump(val_set_err, ft)
+    
+    with open(save_name[:save_name.rfind('_')] + '_val_ece.json', 'a') as ft:
+        json.dump(val_set_ece, ft)
     
     wandb.finish()
     end_time = time.time()
