@@ -18,7 +18,7 @@ from Losses.ce import CrossEntropy, CrossEntropyExpMinusCrossEntropy
 
 
 def cross_entropy(logits, targets, **kwargs):
-    return CrossEntropy()(logits, targets, reduction='sum')
+    return CrossEntropy()(logits, targets)
 
 def cross_entropy_exp_minus_cross_entropy(logits, targets, **kwargs):
     return CrossEntropyExpMinusCrossEntropy()(logits, targets)
