@@ -71,6 +71,7 @@ def loss_function_save_name(loss_function,
                             n_bins=5):
     res_dict = {
         'cross_entropy': 'cross_entropy',
+        'cross_entropy_exp_minus_cross_entropy': 'cross_entropy_exp_minus_cross_entropy',
         'focal_loss': 'focal_loss_gamma_' + str(gamma),
         'focal_loss_gra': 'focal_loss_gra_gamma_' + str(gamma),
         'focal_loss_adaptive': 'focal_loss_adaptive_gamma_' + str(gamma),
