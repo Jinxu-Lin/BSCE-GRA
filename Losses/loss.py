@@ -14,7 +14,7 @@ from Losses.mmce import MMCE, MMCE_weighted
 from Losses.brier_score import BrierScore, BrierScoreExp, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
 from Losses.ece import ECELoss
 from Losses.dece import DECE
-from Losses.ce import CrossEntropy, CrossEntropyExp
+from Losses.ce import CrossEntropy, CrossEntropyExp, CrossEntropyWeightBS
 
 
 def cross_entropy(logits, targets, **kwargs):
@@ -22,6 +22,9 @@ def cross_entropy(logits, targets, **kwargs):
 
 def cross_entropy_exp(logits, targets, **kwargs):
     return CrossEntropyExp(temperature=kwargs['temperature'])(logits, targets)
+
+def cross_entropy_weight_bs(logits, targets, **kwargs):
+    return CrossEntropyWeightBS(temperature=kwargs['temperature'])(logits, targets)
 
 def focal_loss(logits, targets, **kwargs):
     return FocalLoss(gamma=kwargs['gamma'])(logits, targets)
