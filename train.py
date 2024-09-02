@@ -353,7 +353,7 @@ if __name__ == "__main__":
                                      bsce_norm=args.bsce_norm,)
         test_loss = test_single_epoch(epoch,
                                       net,
-                                      val_loader,
+                                      test_loader,
                                       device,
                                       loss_function=args.loss_function,
                                       temperature=args.temperature,

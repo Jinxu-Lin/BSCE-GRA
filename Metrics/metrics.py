@@ -141,6 +141,7 @@ def test_classification_net(model, data_loader, device, ece_criterion):
     labels_list = []
     predictions_list = []
     confidence_vals_list = []
+    logits_list = []
     with torch.no_grad():
         for i, (data, label) in enumerate(data_loader):
             data = data.to(device)
@@ -153,8 +154,11 @@ def test_classification_net(model, data_loader, device, ece_criterion):
             labels_list.extend(label.cpu().numpy().tolist())
             predictions_list.extend(predictions.cpu().numpy().tolist())
             confidence_vals_list.extend(confidence_vals.cpu().numpy().tolist())
+            logits_list.extend(logits.cpu().numpy().tolist())
     accuracy = accuracy_score(labels_list, predictions_list)
-    ece = ece_criterion(logits, label)
+    all_logits = torch.tensor(logits_list)
+    all_labels = torch.tensor(labels_list)
+    ece = ece_criterion(all_logits, all_labels)
     return confusion_matrix(labels_list, predictions_list), accuracy, ece, labels_list,\
         predictions_list, confidence_vals_list
 
