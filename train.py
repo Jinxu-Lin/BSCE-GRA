@@ -415,15 +415,15 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
-        if val_ece < best_ece:
-            best_ece = val_ece
-            print('New best ece: %.4f' % best_ece)
-            save_name = save_loc + '/best/' + \
-                        args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
-                        '_best_ece_' + \
-                        str(epoch + 1) + '.model'
-            torch.save(net.state_dict(), save_name)
+        # if val_ece < best_ece:
+        #     best_ece = val_ece
+        #     print('New best ece: %.4f' % best_ece)
+        #     save_name = save_loc + '/best/' + \
+        #                 args.model_name + '_' + \
+        #                 loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
+        #                 '_best_ece_' + \
+        #                 str(epoch + 1) + '.model'
+        #     torch.save(net.state_dict(), save_name)
             
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \
