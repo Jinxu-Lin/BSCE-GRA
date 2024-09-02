@@ -46,9 +46,10 @@ class BrierScore(nn.Module):
         pt = F.softmax(input)
         squared_diff = (target_one_hot - pt) ** 2
 
-        loss = torch.sum(squared_diff) / float(input.shape[0])
+        loss = torch.sum(squared_diff)
         return loss
     
+
 class BrierScoreExp(nn.Module):
     def __init__(self, temperature=1.0):
         super(BrierScoreExp, self).__init__()
@@ -66,16 +67,46 @@ class BrierScoreExp(nn.Module):
         target_one_hot.scatter_(1, target, 1)
 
         pt = F.softmax(input)
-        squared_diff = (target_one_hot - pt) ** 2
-        
-        loss = torch.sum(squared_diff) / float(input.shape[0])
+        loss = (target_one_hot - pt) ** 2
     
         with torch.no_grad():
             weight = torch.exp(
                 torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
             ) - 1
 
-        return loss * weight
+        loss = torch.sum(loss*weight)
+
+        return loss
+    
+
+class BrierScoreExpNoClipping(nn.Module):
+    def __init__(self, temperature=1.0):
+        super(BrierScoreExpNoClipping, self).__init__()
+        self.temperature = temperature
+
+    def forward(self, input, target):
+        if input.dim()>2:
+            input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
+            input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
+        target = target.view(-1,1)
+        
+        target_one_hot = torch.FloatTensor(input.shape).to(target.get_device())
+        target_one_hot.zero_()
+        target_one_hot.scatter_(1, target, 1)
+
+        pt = F.softmax(input)
+        squared_diff = (target_one_hot - pt) ** 2
+            
+        with torch.no_grad():
+            weight = torch.exp(
+                torch.clamp(loss.detach(), min=0, max=self.temperature)
+            ) - 1
+
+        loss = torch.sum(squared_diff*weight)
+
+        return loss
+    
 
 class BSCELoss(nn.Module):
     def __init__(self, gamma=0, norm=1, size_average=False):
