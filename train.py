@@ -409,14 +409,14 @@ if __name__ == "__main__":
         val_set_loss[epoch] = val_loss
         test_set_loss[epoch] = test_loss
         val_set_err[epoch] = 1 - val_acc
-        val_set_ece[epoch] = ece
+        val_set_ece[epoch] = val_ece
 
         save_loc = os.path.join(args.save_loc, model_name)
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
-        if ece < best_ece:
-            best_ece = ece
+        if val_ece < best_ece:
+            best_ece = val_ece
             print('New best ece: %.4f' % best_ece)
             save_name = save_loc + '/best/' + \
                         args.model_name + '_' + \
