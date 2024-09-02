@@ -68,6 +68,7 @@ class BrierScoreExp(nn.Module):
 
         pt = F.softmax(input)
         squared_diff = (target_one_hot - pt) ** 2
+        squared_diff = squared_diff.sum(dim=1)
     
         with torch.no_grad():
             weight = torch.exp(
