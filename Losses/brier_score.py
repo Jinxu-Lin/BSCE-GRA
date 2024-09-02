@@ -67,14 +67,14 @@ class BrierScoreExp(nn.Module):
         target_one_hot.scatter_(1, target, 1)
 
         pt = F.softmax(input)
-        loss = (target_one_hot - pt) ** 2
+        squared_diff = (target_one_hot - pt) ** 2
     
         with torch.no_grad():
             weight = torch.exp(
-                torch.clamp(loss.detach(), min=0, max=self.temperature) / (self.temperature + 1)
+                torch.clamp(squared_diff.detach(), min=0, max=self.temperature) / (self.temperature + 1)
             ) - 1
 
-        loss = torch.sum(loss*weight)
+        loss = torch.sum(squared_diff*weight)
 
         return loss
     
@@ -100,7 +100,7 @@ class BrierScoreExpNoClipping(nn.Module):
             
         with torch.no_grad():
             weight = torch.exp(
-                torch.clamp(loss.detach(), min=0, max=self.temperature)
+                torch.clamp(squared_diff.detach(), min=0, max=self.temperature)
             ) - 1
 
         loss = torch.sum(squared_diff*weight)
