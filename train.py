@@ -411,7 +411,7 @@ if __name__ == "__main__":
         val_set_err[epoch] = 1 - val_acc
         val_set_ece[epoch] = val_ece
 
-        save_loc = os.path.join(args.save_loc, model_name, 'seed={}'.format(args.seed))
+        save_loc = os.path.join(args.save_loc, model_name, args.seed)
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
