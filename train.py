@@ -100,6 +100,33 @@ def loss_function_save_name(loss_function,
     return res_str
 
 
+def set_seeds(seed):
+    
+    random.seed(seed)
+    
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def get_logits_labels(data_loader, net):
+    logits_list = []
+    labels_list = []
+    net.eval()
+    with torch.no_grad():
+        for data, label in data_loader:
+            data = data.cuda()
+            logits = net(data)
+            logits_list.append(logits)
+            labels_list.append(label)
+        logits = torch.cat(logits_list).cuda()
+        labels = torch.cat(labels_list).cuda()
+    return logits, labels
+
+
 def parseArgs():
     default_dataset = 'cifar10'
     dataset_root = './'
@@ -131,6 +158,8 @@ def parseArgs():
     parser = argparse.ArgumentParser(
         description="Training for calibration.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--seed", type=int, default=1,
+                        dest="seed", help='random seed')
     parser.add_argument("--dataset", type=str, default=default_dataset,
                         dest="dataset", help='dataset to train on')
     parser.add_argument("--dataset-root", type=str, default=dataset_root,
@@ -223,8 +252,8 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-    torch.manual_seed(1)
     args = parseArgs()
+    set_seeds(args.seed)
 
     # Setting model name
     if args.model_name is None:
@@ -362,14 +391,17 @@ if __name__ == "__main__":
                                       n_bins=args.n_bins,                            
                                      bsce_norm=args.bsce_norm,)
         ece_criterion = ECELoss().cuda()
-        _, val_acc, ece, _, _, _ = test_classification_net(net, val_loader, device, ece_criterion)
+        _, val_acc, val_ece, _, _, _ = test_classification_net(net, val_loader, device, ece_criterion)
+        test_logits, test_labels = get_logits_labels(test_loader, net)
+        test_ece = ece_criterion(test_logits, test_labels).item()
         wandb.log(
             {
                 "epoch": epoch,
                 "train_loss": train_loss,
                 "val_loss": val_loss,
                 "val_acc": val_acc,
-                "val_ece": ece
+                "val_ece": val_ece,
+                "test_ece": test_ece
             }
         )
 
