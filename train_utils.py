@@ -10,7 +10,8 @@ from Losses.loss import cross_entropy, cross_entropy_exp, cross_entropy_weight_b
 from Losses.loss import focal_loss, focal_loss_gra, focal_loss_adaptive, focal_loss_adaptive_gra
 from Losses.loss import dual_focal_loss, dual_focal_loss_gra
 from Losses.loss import mmce, mmce_weighted, mmce_gra
-from Losses.loss import brier_score, brier_score_exp, brier_score_exp_no_clipping, bsce, bsce_gra, bsce_adaptive_gra, tlbs
+from Losses.loss import brier_score, brier_score_exp, brier_score_exp_no_clipping, brier_score_exp_no_minus, brier_score_exp_pure
+from Losses.loss import bsce, bsce_gra, bsce_adaptive_gra, tlbs
 from Losses.loss import ece_loss, dece
 
 loss_function_dict = {
@@ -18,6 +19,8 @@ loss_function_dict = {
     'cross_entropy_exp': cross_entropy_exp,
     'cross_entropy_weight_bs': cross_entropy_weight_bs,
     'brier_score_exp_no_clipping': brier_score_exp_no_clipping,
+    'brier_score_exp_no_minus': brier_score_exp_no_minus,
+    'brier_score_exp_pure': brier_score_exp_pure,
     'focal_loss': focal_loss,
     'focal_loss_gra': focal_loss_gra,
     'focal_loss_adaptive': focal_loss_adaptive,
