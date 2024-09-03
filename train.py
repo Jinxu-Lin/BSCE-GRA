@@ -409,7 +409,7 @@ if __name__ == "__main__":
         val_set_loss[epoch] = val_loss
         test_set_loss[epoch] = test_loss
         val_set_err[epoch] = 1 - val_acc
-        val_set_ece[epoch] = val_ece
+        val_set_ece[epoch] = float(val_ece)
 
         save_loc = os.path.join(args.save_loc, model_name, str(args.seed))
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
