@@ -87,6 +87,8 @@ def loss_function_save_name(loss_function,
         'brier_score': 'brier_score',
         'brier_score_exp': 'brier_score_exp_temperature_' + str(temperature),
         'brier_score_exp_no_clipping': 'brier_score_exp_no_clipping_temperature_' + str(temperature),
+        'brier_score_exp_no_minus': 'brier_score_exp_no_minus_temperature_' + str(temperature),
+        'brier_score_exp_pure': 'brier_score_exp_pure',
         'bsce': 'bsce_gamma_' + str(gamma),
         'bsce_gra': 'bsce_gra_gamma_' + str(gamma),
         'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma),
@@ -258,13 +260,13 @@ if __name__ == "__main__":
     # Setting model name
     if args.model_name is None:
         args.model_name = args.model
-    model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function+'-'+str(args.seed)
+    wandb_name = args.dataset+'-'+args.model_name+'-'+args.loss_function+'-'+str(args.seed)
 
     if args.wandb_offline:
         os.environ["WANDB_MODE"] = "offline"
     else:
         os.environ["WANDB_MODE"] = "online"
-    run = wandb.init(entity="jinxulin2000",project='ReweightingGradientCalibration', name=model_name, config=args)
+    run = wandb.init(entity="jinxulin2000",project='ReweightingGradientCalibration', name=wandb_name, config=args)
 
     cuda = False
     if (torch.cuda.is_available() and args.gpu):
@@ -411,6 +413,7 @@ if __name__ == "__main__":
         val_set_err[epoch] = 1 - val_acc
         val_set_ece[epoch] = float(val_ece)
 
+        model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
         save_loc = os.path.join(args.save_loc, model_name, str(args.seed))
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)

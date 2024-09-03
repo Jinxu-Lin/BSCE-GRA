@@ -72,7 +72,7 @@ class BrierScoreExp(nn.Module):
     
         with torch.no_grad():
             weight = torch.exp(
-                torch.clamp(squared_diff.detach(), min=0, max=self.temperature) / (self.temperature + 1)
+                torch.clamp(squared_diff, min=0, max=self.temperature) / (self.temperature + 1)
             ) - 1
 
         loss = torch.sum(squared_diff*weight)
@@ -102,13 +102,72 @@ class BrierScoreExpNoClipping(nn.Module):
         
         with torch.no_grad():
             weight = torch.exp(
-                torch.clamp(squared_diff.detach(), min=0, max=self.temperature)
+                torch.clamp(squared_diff, min=0, max=self.temperature)
             ) - 1
 
         loss = torch.sum(squared_diff*weight)
 
         return loss
     
+
+class BrierScoreExpNoMinus(nn.Module):
+    def __init__(self, temperature=1.0):
+        super(BrierScoreExpNoMinus, self).__init__()
+        self.temperature = temperature
+
+    def forward(self, input, target):
+        if input.dim()>2:
+            input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
+            input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
+        target = target.view(-1,1)
+        
+        target_one_hot = torch.FloatTensor(input.shape).to(target.get_device())
+        target_one_hot.zero_()
+        target_one_hot.scatter_(1, target, 1)
+
+        pt = F.softmax(input)
+        squared_diff = (target_one_hot - pt) ** 2
+        squared_diff = squared_diff.sum(dim=1)
+    
+        with torch.no_grad():
+            weight = torch.exp(
+                torch.clamp(squared_diff, min=0, max=self.temperature) / (self.temperature + 1)
+            )
+
+        loss = torch.sum(squared_diff*weight)
+
+        return loss
+    
+
+class BrierScoreExpPure(nn.Module):
+    def __init__(self):
+        super(BrierScoreExpPure, self).__init__()
+
+    def forward(self, input, target):
+        if input.dim()>2:
+            input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
+            input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
+        target = target.view(-1,1)
+        
+        target_one_hot = torch.FloatTensor(input.shape).to(target.get_device())
+        target_one_hot.zero_()
+        target_one_hot.scatter_(1, target, 1)
+
+        pt = F.softmax(input)
+        squared_diff = (target_one_hot - pt) ** 2
+        squared_diff = squared_diff.sum(dim=1)
+    
+        with torch.no_grad():
+            weight = torch.exp(
+                squared_diff
+            )
+
+        loss = torch.sum(squared_diff*weight)
+
+        return loss
+
 
 class BSCELoss(nn.Module):
     def __init__(self, gamma=0, norm=1, size_average=False):

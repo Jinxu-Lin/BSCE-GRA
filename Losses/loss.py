@@ -11,7 +11,8 @@ from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, DualFocalLoss, DualFocalLossGra
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
 from Losses.mmce import MMCE, MMCE_weighted
-from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpNoClipping, BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
+from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpNoClipping, BrierScoreExpNoMinus, BrierScoreExpPure
+from Losses.brier_score import BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
 from Losses.ece import ECELoss
 from Losses.dece import DECE
 from Losses.ce import CrossEntropy, CrossEntropyExp, CrossEntropyWeightBS
@@ -73,6 +74,12 @@ def brier_score_exp(logits, targets, **kwargs):
 
 def brier_score_exp_no_clipping(logits, targets, **kwargs):
     return BrierScoreExpNoClipping(temperature=kwargs['temperature'])(logits, targets)
+
+def brier_score_exp_no_minus(logits, targets, **kwargs):
+    return BrierScoreExpNoMinus(temperature=kwargs['temperature'])(logits, targets)
+
+def brier_score_exp_pure(logits, targets, **kwargs):
+    return BrierScoreExpPure()(logits, targets)
 
 def bsce(logits, targets, **kwargs):
     return BSCELoss(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'])(logits, targets)
