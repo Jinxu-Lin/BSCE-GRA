@@ -50,6 +50,18 @@ models = {
 }
 
 
+def set_seeds(seed):
+    
+    random.seed(seed)
+    
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 def parseArgs():
     default_dataset = 'cifar10'
     dataset_root = './'
@@ -65,6 +77,8 @@ def parseArgs():
     parser = argparse.ArgumentParser(
         description="Evaluating a single model on calibration metrics.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--seed", type=int, default=default_dataset,
+                        dest="seed", help='dataset to test on')
     parser.add_argument("--dataset", type=str, default=default_dataset,
                         dest="dataset", help='dataset to test on')
     parser.add_argument("--dataset-root", type=str, default=dataset_root,
@@ -160,10 +174,9 @@ if __name__ == "__main__":
         cuda = True
 
     # Setting additional parameters
-    torch.manual_seed(1)
-    device = torch.device("cuda" if cuda else "cpu")
-
     args = parseArgs()
+    set_seeds(args.seed)
+    device = torch.device("cuda" if cuda else "cpu")
 
     if args.model_name is None:
         args.model_name = args.model
@@ -171,7 +184,7 @@ if __name__ == "__main__":
     dataset = args.dataset
     dataset_root = args.dataset_root
     model_name = args.model_name
-    save_loc = "/home/jinxulin/UQ/model/" + args.dataset + '-' + args.model + '-' + args.loss + "/epoch/"
+    save_loc = '/home/jinxulin/UQ/model/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
     saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.temperature, args.gamma, args.n_bins) + "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
