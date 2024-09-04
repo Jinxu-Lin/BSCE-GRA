@@ -226,7 +226,7 @@ if __name__ == "__main__":
     model_path = os.path.join(save_loc, saved_model_name)
     net.load_state_dict(torch.load(model_path))
 
-    conf_acc = ConfAccLoss().cuda()
+    # conf_acc = ConfAccLoss().cuda()
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = ECELoss().cuda()
     adaece_criterion = AdaptiveECELoss().cuda()
@@ -236,9 +236,9 @@ if __name__ == "__main__":
     logits, labels = get_logits_labels(test_loader, net)
     conf_matrix, p_accuracy, _, _, _ = test_classification_net_logits(logits, labels)
 
-    bin_stats = conf_acc(logits, labels)
-    bin_stats = bin_stats.cpu().numpy()
-    np.save(save_loc+str(args.epoch)+'_bin_stats.npy', bin_stats)
+    # bin_stats = conf_acc(logits, labels)
+    # bin_stats = bin_stats.cpu().numpy()
+    # np.save(save_loc+str(args.epoch)+'_bin_stats.npy', bin_stats)
 
     p_ece = ece_criterion(logits, labels).item()
     p_adaece = adaece_criterion(logits, labels).item()
