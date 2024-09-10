@@ -77,7 +77,8 @@ class FocalLossExp(nn.Module):
         logpt = logpt.view(-1)
         pt = logpt.exp()
 
-        weight = torch.exp(1 - pt) - 1
+        with torch.no_grad():
+            weight = torch.exp(1 - pt) - 1
 
         loss = -1 * weight * logpt
 
