@@ -13,6 +13,6 @@ def evaluate_dataset(model, dataloader, device, num_bins, num_labels):
     ece, bin_dict = expected_calibration_error(confidences, predictions, labels, num_bins=num_bins)
     adaece, adabin_dict = adaECE_error(confidences, predictions, labels, num_bins=num_bins)
     mce = maximum_calibration_error(confidences, predictions, labels, num_bins=num_bins)
-    classwise_ece = ClasswiseECELoss(n_bins=num_bins)(logits, torch.tensor(labels))
+    classwise_ece = ClasswiseECELoss(n_bins=num_bins)(logits, labels)
     
     return loss, confusion_matrix, acc, ece, bin_dict, adaece, adabin_dict, mce, classwise_ece
