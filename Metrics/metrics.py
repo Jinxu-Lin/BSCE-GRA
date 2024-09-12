@@ -340,6 +340,9 @@ class ClasswiseECELoss(nn.Module):
         softmaxes = F.softmax(logits, dim=1)
         per_class_sce = None
 
+        logits = logits.cuda()
+        labels = labels.cuda()
+
         for i in range(num_classes):
             class_confidences = softmaxes[:, i]
             class_sce = torch.zeros(1, device=logits.device)
