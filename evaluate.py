@@ -24,7 +24,7 @@ from Metrics.metrics import test_classification_net_logits
 from Metrics.metrics import ECELoss, AdaptiveECELoss, ClasswiseECELoss, BrierScoreLoss, ConfAccLoss
 
 # Import temperature scaling and NLL utilities
-from temperature_scaling import ModelWithTemperature
+from Utils.temperature_scaling import ModelWithTemperature
 
 
 # Dataset params
