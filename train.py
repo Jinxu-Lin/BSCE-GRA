@@ -68,7 +68,7 @@ def loss_function_save_name(loss_function,
                             gamma2=1.0,
                             gamma3=1.0,
                             lamda=1.0,
-                            n_bins=5):
+                            num_bins=5):
     res_dict = {
         'cross_entropy': 'cross_entropy',
         'cross_entropy_exp': 'cross_entropy_exp_temperature_' + str(temperature),
@@ -92,7 +92,7 @@ def loss_function_save_name(loss_function,
         'bsce': 'bsce_gamma_' + str(gamma),
         'bsce_gra': 'bsce_gra_gamma_' + str(gamma),
         'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma),
-        'ece_loss': 'ece_loss_' + str(n_bins),
+        'ece_loss': 'ece_loss_' + str(num_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
@@ -421,7 +421,7 @@ if __name__ == "__main__":
         #     print('New best ece: %.4f' % best_ece)
         #     save_name = save_loc + '/best/' + \
         #                 args.model_name + '_' + \
-        #                 loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
+        #                 loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.num_bins) + \
         #                 '_best_ece_' + \
         #                 str(epoch + 1) + '.model'
         #     torch.save(net.state_dict(), save_name)
@@ -429,7 +429,7 @@ if __name__ == "__main__":
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \
                         args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.n_bins) + \
+                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.num_bins) + \
                         '_' + str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
 
