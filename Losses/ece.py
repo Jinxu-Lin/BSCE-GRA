@@ -31,7 +31,7 @@ class ECELoss(nn.Module):
                     avg_confidence_in_bin = confidences[in_bin].mean()
                     ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
 
-        logpt = F.log_softmax(input)
+        logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
 

@@ -15,7 +15,7 @@ class CrossEntropy(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logpt = F.log_softmax(input)
+        logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
         pt = logpt.exp()
@@ -37,7 +37,7 @@ class CrossEntropyExp(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logpt = F.log_softmax(input)
+        logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
         pt = logpt.exp()
@@ -64,7 +64,7 @@ class CrossEntropyWeightBS(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logpt = F.log_softmax(input)
+        logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
 

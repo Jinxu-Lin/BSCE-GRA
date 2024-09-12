@@ -27,12 +27,10 @@ from Net.wide_resnet import wide_resnet_cifar
 from Net.densenet import densenet121
 from Net.vit import vit
 # Import loss functions
-from Losses.loss import cross_entropy, focal_loss, focal_loss_adaptive
-from Losses.loss import mmce, mmce_weighted
-from Losses.loss import brier_score
-
+from Losses.loss import set_loss_function
 # Import train and validation utilities
-from train_utils import train_single_epoch, test_single_epoch
+from Utils.train_utils import train_single_epoch
+from Utils.eval_utils import evaluate_dataset
 
 # Import validation metrics
 from Metrics.metrics import test_classification_net
@@ -82,6 +80,7 @@ def loss_function_save_name(loss_function,
         'focal_loss_adaptive_gra': 'focal_loss_adaptive_gra_gamma_' + str(gamma),
         'dual_focal_loss': 'dual_focal_loss_gamma_' + str(gamma),
         'dual_focal_loss_gra': 'dual_focal_loss_gra_gamma_' + str(gamma),
+        'adafocal': 'adafocal',
         'mmce': 'mmce_lamda_' + str(lamda),
         'mmce_gra': 'mmce_gra',
         'mmce_weighted': 'mmce_weighted_lamda_' + str(lamda),
@@ -115,21 +114,6 @@ def set_seeds(seed):
     torch.backends.cudnn.benchmark = False
 
 
-def get_logits_labels(data_loader, net):
-    logits_list = []
-    labels_list = []
-    net.eval()
-    with torch.no_grad():
-        for data, label in data_loader:
-            data = data.cuda()
-            logits = net(data)
-            logits_list.append(logits)
-            labels_list.append(label)
-        logits = torch.cat(logits_list).cuda()
-        labels = torch.cat(labels_list).cuda()
-    return logits, labels
-
-
 def parseArgs():
     default_dataset = 'cifar10'
     dataset_root = './'
@@ -139,11 +123,23 @@ def parseArgs():
     momentum = 0.9
     optimiser = "sgd"
     loss = "cross_entropy"
+
     gamma = 1.0
     gamma2 = 1.0
     gamma3 = 1.0
     lamda = 1.0
-    n_bins = 5
+    gamma_schedule_step1 = 100
+    gamma_schedule_step2 = 250
+    temperature = 1.0
+    bsce_norm = 1
+    num_bins = 15
+    adafocal_lambda = 1.0
+    adafocal_gamma_initial = 1.0
+    adafocal_gamma_max = 20.0
+    adafocal_gamma_min = -2.0
+    adafocal_switch_pt = 0.2
+    update_gamma_every = -1
+
     weight_decay = 5e-4
     log_interval = 50
     save_interval = 50
@@ -155,14 +151,12 @@ def parseArgs():
     epoch = 350
     first_milestone = 150 #Milestone for change in lr
     second_milestone = 250 #Milestone for change in lr
-    gamma_schedule_step1 = 100
-    gamma_schedule_step2 = 250
 
     parser = argparse.ArgumentParser(
         description="Training for calibration.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--seed", type=int, default=1,
-                        dest="seed", help='random seed')
+
+    # data loader
     parser.add_argument("--dataset", type=str, default=default_dataset,
                         dest="dataset", help='dataset to train on')
     parser.add_argument("--dataset-root", type=str, default=dataset_root,
@@ -170,6 +164,9 @@ def parseArgs():
     parser.add_argument("--data-aug", action="store_true", dest="data_aug")
     parser.set_defaults(data_aug=True)
 
+    # train
+    parser.add_argument("--seed", type=int, default=1,
+                        dest="seed", help='random seed')
     parser.add_argument("-g", action="store_true", dest="gpu",
                         help="Use GPU")
     parser.set_defaults(gpu=True)
@@ -195,12 +192,13 @@ def parseArgs():
                         dest="optimiser",
                         help='Choice of optimisation algorithm')
 
+    # loss
     parser.add_argument("--loss", type=str, default=loss, dest="loss_function",
                         help="Loss function to be used for training")
     parser.add_argument("--loss-mean", action="store_true", dest="loss_mean",
                         help="whether to take mean of loss instead of sum to train")
     parser.set_defaults(loss_mean=False)
-    parser.add_argument("--temperature", type=float, default=1.0,
+    parser.add_argument("--temperature", type=float, default=temperature,
                         dest="temperature", help="Temperature for cross entropy")
     parser.add_argument("--gamma", type=float, default=gamma,
                         dest="gamma", help="Gamma for focal components")
@@ -210,24 +208,32 @@ def parseArgs():
                         dest="gamma3", help="Gamma for different focal components")
     parser.add_argument("--lamda", type=float, default=lamda,
                         dest="lamda", help="Regularization factor")
-    parser.add_argument("--n_bins", type=int, default=n_bins,
-                        dest="n_bins", help="The amount of bins for ece")
+    parser.add_argument("--num-bins", type=int, default=num_bins,
+                        dest="num_bins", help="The amount of bins for ece")
     parser.add_argument("--gamma-schedule", type=int, default=0,
                         dest="gamma_schedule", help="Schedule gamma or not")
     parser.add_argument("--gamma-schedule-step1", type=int, default=gamma_schedule_step1,
                         dest="gamma_schedule_step1", help="1st step for gamma schedule")
     parser.add_argument("--gamma-schedule-step2", type=int, default=gamma_schedule_step2,
                         dest="gamma_schedule_step2", help="2nd step for gamma schedule")
-    parser.add_argument("--bsce-norm", type=int,default=1, 
+    parser.add_argument("--bsce-norm", type=int,default=bsce_norm, 
                         dest="bsce_norm", help="Normalization for bsce")
+    parser.add_argument("--adafocal-lambda", type=float, default=adafocal_lambda, dest="adafocal_lambda", help="lambda for adafocal.")
+    parser.add_argument("--adafocal-gamma-initial", type=float, default=adafocal_gamma_initial, dest="adafocal_gamma_initial", help="Initial gamma for each bin.")
+    parser.add_argument("--adafocal-gamma-max", type=float, default=adafocal_gamma_max, dest="adafocal_gamma_max", help="Maximum cutoff value for gamma.")
+    parser.add_argument("--adafocal-gamma-min", type=float, default=adafocal_gamma_min, dest="adafocal_gamma_min", help="Minimum cutoff value for gamma.")
+    parser.add_argument("--adafocal-switch-pt", type=float, default=adafocal_switch_pt, dest="adafocal_switch_pt", help="Gamma at which to switch to inverse-focal loss.")
+    parser.add_argument("--update-gamma-every", type=int, default=update_gamma_every, dest="update_gamma_every", help="Update gamma every nth batch. If -1, update after epoch end.")
     parser.add_argument("--size-average", action="store_true", dest="size_average",
                         help="Whether to take mean of loss instead of sum")
-
+    
+    
+    # log and save
     parser.add_argument("--log-interval", type=int, default=log_interval,
                         dest="log_interval", help="Log Interval on Terminal")
     parser.add_argument("--save-interval", type=int, default=save_interval,
                         dest="save_interval", help="Save Interval on Terminal")
-    parser.add_argument("--saved_model_name", type=str, default=saved_model_name,
+    parser.add_argument("--saved-model-name", type=str, default=saved_model_name,
                         dest="saved_model_name", help="file name of the pre-trained model")
     parser.add_argument("--save-path", type=str, default=save_loc,
                         dest="save_loc",
@@ -238,6 +244,8 @@ def parseArgs():
     parser.add_argument("--load-path", type=str, default=load_loc,
                         dest="load_loc",
                         help='Path to load the model from')
+    parser.add_argument("--wandb-offline", action="store_true", dest="wandb_offline",
+                        help="Run wandb in offline mode")
 
     parser.add_argument("--model", type=str, default=model, dest="model",
                         help='Model to train')
@@ -246,8 +254,6 @@ def parseArgs():
     parser.add_argument("--second-milestone", type=int, default=second_milestone,
                         dest="second_milestone", help="Second milestone to change lr")
 
-    parser.add_argument("--wandb_offline", action="store_true", dest="wandb_offline",
-                        help="Run wandb in offline mode")
     return parser.parse_args()
 
 
@@ -336,6 +342,9 @@ if __name__ == "__main__":
             batch_size=args.test_batch_size,
             pin_memory=args.gpu
         )
+        
+    # Set loss function
+    loss_function = set_loss_function(args, device)
 
     training_set_loss = {}
     val_set_loss = {}
@@ -349,7 +358,8 @@ if __name__ == "__main__":
     best_val_acc = 0
     best_ece = 1.0
     for epoch in range(start_epoch, num_epochs):
-        scheduler.step()
+        
+        # Gamma schedule for focal loss
         if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
             if (epoch < args.gamma_schedule_step1):
                 gamma = args.gamma
@@ -359,44 +369,31 @@ if __name__ == "__main__":
                 gamma = args.gamma3
         else:
             gamma = args.gamma
+            
+            
         print("args.save_interval",args.save_interval)
-        train_loss = train_single_epoch(epoch,
+
+        train_loss = train_single_epoch(args,
+                                        epoch,
                                         net,
                                         train_loader,
+                                        val_loader,
                                         optimizer,
                                         device,
-                                        loss_function=args.loss_function,
-                                        temperature=args.temperature,
-                                        gamma=gamma,
-                                        lamda=args.lamda,
-                                        n_bins=args.n_bins,
-                                        bsce_norm=args.bsce_norm,
-                                        size_average=args.size_average,
-                                        loss_mean=args.loss_mean)
-        val_loss = test_single_epoch(epoch,
-                                     net,
-                                     val_loader,
-                                     device,
-                                     loss_function=args.loss_function,
-                                     temperature=args.temperature,
-                                     gamma=gamma,
-                                     lamda=args.lamda,
-                                     n_bins=args.n_bins,                            
-                                     bsce_norm=args.bsce_norm,)
-        test_loss = test_single_epoch(epoch,
-                                      net,
-                                      test_loader,
-                                      device,
-                                      loss_function=args.loss_function,
-                                      temperature=args.temperature,
-                                      gamma=gamma,
-                                      lamda=args.lamda,
-                                      n_bins=args.n_bins,                            
-                                     bsce_norm=args.bsce_norm,)
-        ece_criterion = ECELoss().cuda()
-        _, val_acc, val_ece, _, _, _ = test_classification_net(net, val_loader, device, ece_criterion)
-        test_logits, test_labels = get_logits_labels(test_loader, net)
-        test_ece = ece_criterion(test_logits, test_labels).item()
+                                        loss_function=loss_function,
+                                        num_labels=num_classes,
+                                    )
+        
+        scheduler.step()
+
+        # This evaluates the current model on the validation set to collect various performance statistics.
+        # This calls the "evaluate_dataset" function implemented in utils/eval_utils.py
+        (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
+        val_adaece, val_adabin_dict, val_mce, val_classwise_ece) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+
+        (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
+        test_adaece, test_adabin_dict, test_mce, test_classwise_ece) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+        
         wandb.log(
             {
                 "epoch": epoch,

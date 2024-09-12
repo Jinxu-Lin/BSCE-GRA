@@ -183,10 +183,10 @@ class BSCELoss(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logpt = F.log_softmax(input)
+        logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
-        pt = F.softmax(input)
+        pt = F.softmax(input, dim=-1)
 
         target_one_hot = torch.FloatTensor(input.shape).to(target.get_device())
         target_one_hot.zero_()
@@ -213,7 +213,7 @@ class BSCELossGra(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logpt = F.log_softmax(input)
+        logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1,target)
         logpt = logpt.view(-1)
         pt = F.softmax(input)

@@ -14,10 +14,11 @@ class MMCE(nn.Module):
     """
     Computes MMCE_m loss.
     """
-    def __init__(self, device):
+    def __init__(self, device, lamda):
         super(MMCE, self).__init__()
         self.device = device
-
+        self.lamda = lamda
+        
     def torch_kernel(self, matrix):
         return torch.exp(-1.0*torch.abs(matrix[:, :, 0] - matrix[:, :, 1])/(0.4))
 
@@ -48,17 +49,65 @@ class MMCE(nn.Module):
 
         numerator = dot_product*kernel_prob_pairs
         #return torch.sum(numerator)/correct_mask.shape[0]**2
-        return torch.sum(numerator)/torch.pow(torch.tensor(correct_mask.shape[0]).type(torch.FloatTensor),2)
+        ce = F.cross_entropy(input, target)
+        mmce = torch.sum(numerator)/torch.pow(torch.tensor(correct_mask.shape[0]).type(torch.FloatTensor),2)
+        return ce + self.lamda * mmce
     
 
-class MMCE_weighted(nn.Module):
+class MMCEGRA(nn.Module):
+    """
+    Computes MMCE_m loss.
+    """
+    def __init__(self, device, lamda):
+        super(MMCEGRA, self).__init__()
+        self.device = device
+        self.lamda = lamda
+        
+    def torch_kernel(self, matrix):
+        return torch.exp(-1.0*torch.abs(matrix[:, :, 0] - matrix[:, :, 1])/(0.4))
+
+    def forward(self, input, target):
+        if input.dim()>2:
+            input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
+            input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
+
+        target = target.view(-1) #For CIFAR-10 and CIFAR-100, target.shape is [N] to begin with
+
+        predicted_probs = F.softmax(input, dim=1)
+        predicted_probs, pred_labels = torch.max(predicted_probs, 1)
+        correct_mask = torch.where(torch.eq(pred_labels, target),
+                          torch.ones(pred_labels.shape).to(self.device),
+                          torch.zeros(pred_labels.shape).to(self.device))
+
+        c_minus_r = correct_mask - predicted_probs
+
+        dot_product = torch.mm(c_minus_r.unsqueeze(1),
+                        c_minus_r.unsqueeze(0))
+
+        prob_tiled = predicted_probs.unsqueeze(1).repeat(1, predicted_probs.shape[0]).unsqueeze(2)
+        prob_pairs = torch.cat([prob_tiled, prob_tiled.permute(1, 0, 2)],
+                                    dim=2)
+
+        kernel_prob_pairs = self.torch_kernel(prob_pairs)
+
+        numerator = dot_product*kernel_prob_pairs
+        #return torch.sum(numerator)/correct_mask.shape[0]**2
+        ce = F.cross_entropy(input, target)
+        with torch.no_grad():
+            mmce = torch.sum(numerator)/torch.pow(torch.tensor(correct_mask.shape[0]).type(torch.FloatTensor),2)
+        return mmce * ce
+    
+
+class MMCEWeighted(nn.Module):
     """
     Computes MMCE_w loss.
     """
-    def __init__(self, device):
-        super(MMCE_weighted, self).__init__()
+    def __init__(self, device, lamda):
+        super(MMCEWeighted, self).__init__()
         self.device = device
-
+        self.lamda = lamda
+        
     def torch_kernel(self, matrix):
         return torch.exp(-1.0*torch.abs(matrix[:, :, 0] - matrix[:, :, 1])/(0.4))
 
@@ -136,4 +185,7 @@ class MMCE_weighted(nn.Module):
         mmd_error = 1.0/(m*m + 1e-5) * torch.sum(correct_correct_vals) 
         mmd_error += 1.0/(n*n + 1e-5) * torch.sum(incorrect_incorrect_vals)
         mmd_error -= 2.0/(m*n + 1e-5) * torch.sum(correct_incorrect_vals)
-        return torch.max((cond_k*cond_k_p).type(torch.FloatTensor).to(self.device).detach()*torch.sqrt(mmd_error + 1e-10), torch.tensor(0.0).to(self.device))
+        
+        mmce = torch.max((cond_k*cond_k_p).type(torch.FloatTensor).to(self.device).detach()*torch.sqrt(mmd_error + 1e-10), torch.tensor(0.0).to(self.device))
+        ce = F.cross_entropy(input, target)
+        return ce + self.lamda * mmce

@@ -17,7 +17,7 @@ class DualFocalLoss(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logp_k = F.log_softmax(input, dim=1)
+        logp_k = F.log_softmax(input, dim=-1)
         softmax_logits = logp_k.exp()
         logp_k = logp_k.gather(1, target)
         logp_k = logp_k.view(-1)
@@ -44,7 +44,7 @@ class DualFocalLossGra(nn.Module):
             input = input.contiguous().view(-1,input.size(2))   # N,H*W,C => N*H*W,C
         target = target.view(-1,1)
 
-        logp_k = F.log_softmax(input, dim=1)
+        logp_k = F.log_softmax(input, dim=-1)
         softmax_logits = logp_k.exp()
         logp_k = logp_k.gather(1, target)
         logp_k = logp_k.view(-1)

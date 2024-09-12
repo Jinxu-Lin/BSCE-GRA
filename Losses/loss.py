@@ -11,93 +11,123 @@ from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, FocalLossExp
 from Losses.dual_focal_loss import DualFocalLoss, DualFocalLossGra
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
-from Losses.mmce import MMCE, MMCE_weighted
+from Losses.adafocal import AdaFocal
+from Losses.mmce import MMCE, MMCEWeighted, MMCEGRA
 from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpNoClipping, BrierScoreExpNoMinus, BrierScoreExpPure
 from Losses.brier_score import BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSLoss
 from Losses.ece import ECELoss
 from Losses.dece import DECE
 from Losses.ce import CrossEntropy, CrossEntropyExp, CrossEntropyWeightBS
 
+def cross_entropy(args, device):
+    return CrossEntropy()
 
-def cross_entropy(logits, targets, **kwargs):
-    return CrossEntropy()(logits, targets)
+def cross_entropy_exp(args, device):
+    return CrossEntropyExp(temperature=args.temperature)
 
-def cross_entropy_exp(logits, targets, **kwargs):
-    return CrossEntropyExp(temperature=kwargs['temperature'])(logits, targets)
+def cross_entropy_weight_bs(args, device):
+    return CrossEntropyWeightBS(temperature=args.temperature)
 
-def cross_entropy_weight_bs(logits, targets, **kwargs):
-    return CrossEntropyWeightBS(temperature=kwargs['temperature'])(logits, targets)
+def focal_loss(args, device):
+    return FocalLoss(gamma=args.gamma)
 
-def focal_loss(logits, targets, **kwargs):
-    return FocalLoss(gamma=kwargs['gamma'])(logits, targets)
+def focal_loss_gra(args, device):
+    return FocalLossGra(gamma=args.gamma)
 
-def focal_loss_gra(logits, targets, **kwargs):
-    return FocalLossGra(gamma=kwargs['gamma'])(logits, targets)
+def focal_loss_exp(args, device):
+    return FocalLossExp()
 
-def focal_loss_exp(logits, targets, **kwargs):
-    return FocalLossExp()(logits, targets)
+def focal_loss_adaptive(args, device):
+    return FocalLossAdaptive(gamma=args.gamma,
+                             device=device)
 
-def focal_loss_adaptive(logits, targets, **kwargs):
-    return FocalLossAdaptive(gamma=kwargs['gamma'],
-                             device=kwargs['device'])(logits, targets)
+def focal_loss_adaptive_gra(args, device):
+    return FocalLossAdaptiveGra(gamma=args.gamma,
+                             device=device)
 
-def focal_loss_adaptive_gra(logits, targets, **kwargs):
-    return FocalLossAdaptiveGra(gamma=kwargs['gamma'],
-                             device=kwargs['device'])(logits, targets)
+def dual_focal_loss(args, device):
+    return DualFocalLoss(gamma=args.gamma)
 
-def dual_focal_loss(logits, targets, **kwargs):
-    return DualFocalLoss(gamma=kwargs['gamma'])(logits, targets)
+def dual_focal_loss_gra(args, device):
+    return DualFocalLossGra(gamma=args.gamma)
 
-def dual_focal_loss_gra(logits, targets, **kwargs):
-    return DualFocalLossGra(gamma=kwargs['gamma'])(logits, targets)
+def ada_focal(args, device):
+    return AdaFocal(args=args, device=device)
 
-def ece_loss(logits, targets, **kwargs):
-    return ECELoss(n_bins=kwargs['n_bins'])(logits, targets)
+def ece_loss(args, device):
+    return ECELoss(n_bins=args.n_bins)
 
-def mmce(logits, targets, **kwargs):
-    ce = F.cross_entropy(logits, targets)
-    mmce = MMCE(kwargs['device'])(logits, targets)
-    return ce + (kwargs['lamda'] * mmce)
+def mmce(args, device):
+    return MMCE(device=device, lamda=args.lamda)
 
-def mmce_gra(logits, targets, **kwargs):
-    ce = F.cross_entropy(logits, targets)
-    with torch.no_grad():
-        mmce = MMCE(kwargs['device'])(logits, targets)
-    return mmce*ce
+def mmce_gra(args, device):
+    return MMCEGRA(device=device, lamda=args.lamda)
 
-def mmce_weighted(logits, targets, **kwargs):
-    ce = F.cross_entropy(logits, targets)
-    mmce = MMCE_weighted(kwargs['device'])(logits, targets)
-    return ce + (kwargs['lamda'] * mmce)
+def mmce_weighted(args, device):
+    return MMCEWeighted(device=device, lamda=args.lamda)
 
-def brier_score(logits, targets, **kwargs):
-    return BrierScore()(logits, targets)
+def brier_score(args, device):
+    return BrierScore()
 
-def brier_score_exp(logits, targets, **kwargs):
-    return BrierScoreExp(temperature=kwargs['temperature'])(logits, targets)
+def brier_score_exp(args, device):
+    return BrierScoreExp(temperature=args.temperature)
 
-def brier_score_exp_no_clipping(logits, targets, **kwargs):
-    return BrierScoreExpNoClipping(temperature=kwargs['temperature'])(logits, targets)
+def brier_score_exp_no_clipping(args, device):
+    return BrierScoreExpNoClipping(temperature=args.temperature)
 
-def brier_score_exp_no_minus(logits, targets, **kwargs):
-    return BrierScoreExpNoMinus(temperature=kwargs['temperature'])(logits, targets)
+def brier_score_exp_no_minus(args, device):
+    return BrierScoreExpNoMinus(temperature=args.temperature)
 
-def brier_score_exp_pure(logits, targets, **kwargs):
-    return BrierScoreExpPure()(logits, targets)
+def brier_score_exp_pure(args, device):
+    return BrierScoreExpPure()
 
-def bsce(logits, targets, **kwargs):
-    return BSCELoss(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'])(logits, targets)
+def bsce(args, device):
+    return BSCELoss(gamma=args.gamma, norm=args.bsce_norm)
 
-def bsce_gra(logits, targets, **kwargs):
-    return BSCELossGra(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'], size_average=kwargs['size_average'])(logits, targets)
+def bsce_gra(args, device):
+    return BSCELossGra(gamma=args.gamma, norm=args.bsce_norm, size_average=args.size_average)
 
-def bsce_adaptive_gra(logits, targets, **kwargs):
-    return BSCELossAdaptiveGra(gamma=kwargs['gamma'], norm=kwargs['bsce_norm'], device=kwargs['device'])(logits, targets)
+def bsce_adaptive_gra(args, device):
+    return BSCELossAdaptiveGra(gamma=args.gamma, norm=args.bsce_norm, device=device)
 
-def tlbs(logits, targets, **kwargs):
-    return TLBSLoss(gamma=kwargs['gamma'], device=kwargs['device'])(logits, targets)
+def tlbs(args, device):
+    return TLBSLoss(gamma=args.gamma, device=device)
 
-def dece(logits, targets, **kwargs):
-    return DECE(device = kwargs["device"], num_bins = kwargs["n_bins"], t_a = 100, t_b = 0.01)(
-        logits, targets
-    )
+def dece(args, device):
+    return DECE(device = device, num_bins = args.num_bins, t_a = 100, t_b = 0.01)
+    
+def set_loss_function(args, device):
+    loss_function_dict = {
+        'cross_entropy': cross_entropy,
+        'cross_entropy_exp': cross_entropy_exp,
+        'cross_entropy_weight_bs': cross_entropy_weight_bs,
+        'brier_score_exp_no_clipping': brier_score_exp_no_clipping,
+        'brier_score_exp_no_minus': brier_score_exp_no_minus,
+        'brier_score_exp_pure': brier_score_exp_pure,
+        'focal_loss': focal_loss,
+        'focal_loss_gra': focal_loss_gra,
+        'focal_loss_exp': focal_loss_exp,
+        'focal_loss_adaptive': focal_loss_adaptive,
+        'focal_loss_adaptive_gra': focal_loss_adaptive_gra,
+        'dual_focal_loss': dual_focal_loss,
+        'dual_focal_loss_gra': dual_focal_loss_gra,
+        'ada_focal': ada_focal,
+        'mmce': mmce,
+        'mmce_gra': mmce_gra,
+        'mmce_weighted': mmce_weighted,
+        'brier_score': brier_score,
+        'bsce': bsce,
+        'brier_score_exp': brier_score_exp,
+        'bsce_gra': bsce_gra,
+        'bsce_adaptive_gra': bsce_adaptive_gra,
+        'ece_loss': ece_loss,
+        'tlbs': tlbs,
+        'dece': dece,
+    }    
+    # Get the loss function based on the args.loss_function
+    if args.loss_function not in loss_function_dict:
+        raise ValueError("Unknown loss function: {}".format(args.loss_function))
+    else:
+        loss_function = loss_function_dict[args.loss_function](args, device)
+        
+    return loss_function
