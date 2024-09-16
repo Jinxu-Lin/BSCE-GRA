@@ -217,7 +217,7 @@ def parseArgs():
                         dest="gamma_schedule_step1", help="1st step for gamma schedule")
     parser.add_argument("--gamma-schedule-step2", type=int, default=gamma_schedule_step2,
                         dest="gamma_schedule_step2", help="2nd step for gamma schedule")
-    parser.add_argument("--bsce-norm", type=int,default=bsce_norm, 
+    parser.add_argument("--bsce-norm", type=int, default=bsce_norm, 
                         dest="bsce_norm", help="Normalization for bsce")
     parser.add_argument("--adafocal-lambda", type=float, default=adafocal_lambda, dest="adafocal_lambda", help="lambda for adafocal.")
     parser.add_argument("--adafocal-gamma-initial", type=float, default=adafocal_gamma_initial, dest="adafocal_gamma_initial", help="Initial gamma for each bin.")
