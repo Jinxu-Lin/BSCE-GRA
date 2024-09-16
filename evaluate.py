@@ -74,6 +74,11 @@ def parseArgs():
     test_batch_size = 128
     cross_validation_error = 'ece'
 
+    gamma = 1.0
+    gamma2 = 1.0
+    gamma3 = 1.0
+    bsce_norm = 1
+
     parser = argparse.ArgumentParser(
         description="Evaluating a single model on calibration metrics.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -109,8 +114,19 @@ def parseArgs():
     parser.add_argument("-log", action="store_true", dest="log",
                         help="whether to print log data")
     parser.add_argument("--loss", type=str, default='dual_focal_loss')
+
+    parser.add_argument("--lamda", type=float, default=1.0)
+    parser.add_argument("--gamma-schedule", type=int, default=0,
+                        dest="gamma_schedule", help="Schedule gamma or not")
+    parser.add_argument("--gamma", type=float, default=gamma,
+                        dest="gamma", help="Gamma for focal components")
+    parser.add_argument("--gamma2", type=float, default=gamma2,
+                        dest="gamma2", help="Gamma for different focal components")
+    parser.add_argument("--gamma3", type=float, default=gamma3,
+                        dest="gamma3", help="Gamma for different focal components")
     parser.add_argument("--temperature", type=float, default=1.0)
-    parser.add_argument("--gamma", type=float, default=3.0)
+    parser.add_argument("--bsce-norm", type=int, default=bsce_norm, 
+                        dest="bsce_norm", help="Normalization for bsce")
     parser.add_argument("--epoch", type=int, default=350)
 
 
@@ -133,11 +149,15 @@ def get_logits_labels(data_loader, net):
 
 
 def loss_function_save_name(loss_function,
+                            scheduled=False,
                             temperature=1.0,
                             gamma=1.0,
+                            gamma1=1.0,
+                            gamma2=1.0,
+                            gamma3=1.0,
                             lamda=1.0,
-                            num_bins=5,
-                            bsce_norm=1):
+                            bsce_norm=1,
+                            num_bins=5):
     res_dict = {
         'cross_entropy': 'cross_entropy',
         'cross_entropy_exp': 'cross_entropy_exp_temperature_' + str(temperature),
@@ -187,7 +207,8 @@ if __name__ == "__main__":
     dataset_root = args.dataset_root
     model_name = args.model_name
     save_loc = '/home/jinxulin/UQ/model/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
-    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.temperature, args.gamma, args.num_bins, args.bsce_norm) + "_" + str(args.epoch) + ".model"
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
+          "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
