@@ -136,7 +136,8 @@ def loss_function_save_name(loss_function,
                             temperature=1.0,
                             gamma=1.0,
                             lamda=1.0,
-                            num_bins=5):
+                            num_bins=5,
+                            bsce_norm=1):
     res_dict = {
         'cross_entropy': 'cross_entropy',
         'cross_entropy_exp': 'cross_entropy_exp_temperature_' + str(temperature),
@@ -157,9 +158,9 @@ def loss_function_save_name(loss_function,
         'brier_score_exp_no_clipping': 'brier_score_exp_no_clipping_temperature_' + str(temperature),
         'brier_score_exp_no_minus': 'brier_score_exp_no_minus_temperature_' + str(temperature),
         'brier_score_exp_pure': 'brier_score_exp_pure',
-        'bsce': 'bsce_gamma_' + str(gamma),
-        'bsce_gra': 'bsce_gra_gamma_' + str(gamma),
-        'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma),
+        'bsce': 'bsce_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
+        'bsce_gra': 'bsce_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
+        'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
         'ece_loss': 'ece_loss_' + str(num_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
     }
@@ -186,7 +187,7 @@ if __name__ == "__main__":
     dataset_root = args.dataset_root
     model_name = args.model_name
     save_loc = '/home/jinxulin/UQ/model/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
-    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.temperature, args.gamma, args.num_bins) + "_" + str(args.epoch) + ".model"
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.temperature, args.gamma, args.num_bins, args.bsce_norm) + "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 

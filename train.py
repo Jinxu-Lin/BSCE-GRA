@@ -430,7 +430,7 @@ if __name__ == "__main__":
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \
                         args.model_name + '_' + \
-                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.num_bins) + \
+                        loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
                         '_' + str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
 
