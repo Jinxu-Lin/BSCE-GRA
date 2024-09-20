@@ -35,7 +35,7 @@ def focal_loss_gra(args, device):
     return FocalLossGra(gamma=args.gamma)
 
 def focal_loss_exp(args, device):
-    return FocalLossExp()
+    return FocalLossExp(gamma=args.gamma, temperature=args.temperature)
 
 def focal_loss_adaptive(args, device):
     return FocalLossAdaptive(gamma=args.gamma,
