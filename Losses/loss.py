@@ -114,6 +114,7 @@ def set_loss_function(args, device):
         'focal_loss_adaptive_gra': focal_loss_adaptive_gra,
         'dual_focal_loss': dual_focal_loss,
         'dual_focal_loss_gra': dual_focal_loss_gra,
+        'dual_focal_loss_exp': dual_focal_loss_exp,
         'ada_focal': ada_focal,
         'mmce': mmce,
         'mmce_gra': mmce_gra,
