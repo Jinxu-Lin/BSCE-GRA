@@ -9,7 +9,7 @@ Implementation of the following loss functions:
 import torch
 from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, FocalLossExp
-from Losses.dual_focal_loss import DualFocalLoss, DualFocalLossGra
+from Losses.dual_focal_loss import DualFocalLoss, DualFocalLossGra, DualFocalLossExp
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
 from Losses.adafocal import AdaFocal
 from Losses.mmce import MMCE, MMCEWeighted, MMCEGRA
@@ -47,6 +47,9 @@ def focal_loss_adaptive_gra(args, device):
 
 def dual_focal_loss(args, device):
     return DualFocalLoss(gamma=args.gamma)
+
+def dual_focal_loss_exp(args, device):
+    return DualFocalLossExp(gamma=args.gamma, temperature=args.temperature)
 
 def dual_focal_loss_gra(args, device):
     return DualFocalLossGra(gamma=args.gamma)
