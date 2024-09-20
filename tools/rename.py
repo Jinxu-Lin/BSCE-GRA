@@ -1,49 +1,26 @@
-# import os
-
-# # 指定目录路径
-# directory = "/home/jinxulin/focal_calibration-main/model/resnet50-cifar10-bsce/epoch"
-
-# # 遍历指定目录
-# for filename in os.listdir(directory):
-#     if filename.startswith("resnet50_focal_loss_") :
-#         # 构建完整的旧文件路径
-#         old_file = os.path.join(directory, filename)
-        
-#         # 生成新文件名
-#         new_filename = filename.replace("focal_loss", "bsce")
-        
-#         # 构建完整的新文件路径
-#         new_file = os.path.join(directory, new_filename)
-        
-#         # 重命名文件
-#         os.rename(old_file, new_file)
-        
-#         # 打印信息确认文件已被重命名
-#         print(f"Renamed '{old_file}' to '{new_file}'")
-
 import os
+import re
 
-def rename_folders(base_path):
-    # 遍历指定目录中的所有项
-    for item in os.listdir(base_path):
-        item_path = os.path.join(base_path, item)
-        # 检查这个项是否是目录
-        if os.path.isdir(item_path):
-            # 分割旧的文件夹名，假设文件夹名称符合'model-dataset-loss'的格式
-            parts = item.split('-')
-            if len(parts) == 3:
-                model, dataset, loss = parts
-                # 构建新的文件夹名为'dataset-model-loss'
-                new_folder_name = f"{dataset}-{model}-{loss}"
-                new_folder_path = os.path.join(base_path, new_folder_name)
-                # 重命名文件夹
-                os.rename(item_path, new_folder_path)
-                print(f"Renamed '{item}' to '{new_folder_name}'")
-            else:
-                print(f"Skipped '{item}', does not fit the expected pattern.")
-        else:
-            print(f"Skipped '{item}', it is not a directory.")
+# 指定目录路径
+directory = '/home/jinxulin/UQ/model/cifar10-resnet50-bsce_gra/1/epoch'
 
-# 设置你的基本路径
-base_path = "/home/jinxulin/UQ/model"
-rename_folders(base_path)
+# 遍历目录中的所有文件
+for filename in os.listdir(directory):
+    # 检查文件是否以.model结尾
+    if filename.endswith('.model'):
+        # 使用正则表达式匹配文件名中的模式
+        match = re.search(r'(.*_norm_)(15__1__1)(_.*.model)', filename)
+        
+        if match:
+            # 构造新的文件名
+            new_filename = match.group(1) + '1' + match.group(3)
+            
+            # 构造完整的文件路径
+            old_path = os.path.join(directory, filename)
+            new_path = os.path.join(directory, new_filename)
+            
+            # 重命名文件
+            os.rename(old_path, new_path)
+            print(f'已重命名: {filename} -> {new_filename}')
+
+print('重命名过程完成')

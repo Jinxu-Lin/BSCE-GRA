@@ -144,7 +144,7 @@ def parseArgs():
     weight_decay = 5e-4
     log_interval = 50
     save_interval = 50
-    save_loc = './'
+    save_loc = './model/'
     model_name = None
     saved_model_name = "resnet50_cross_entropy_350.model"
     load_loc = './'
