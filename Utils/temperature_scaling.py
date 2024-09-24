@@ -70,8 +70,8 @@ class ModelWithTemperature(nn.Module):
         ece_val = 10 ** 7
         T_opt_nll = 1.0
         T_opt_ece = 1.0
-        T = 0.1
-        for i in range(100):
+        T = 0.01
+        for i in range(1000):
             self.temperature = T
             self.cuda()
             after_temperature_nll = nll_criterion(self.temperature_scale(logits), labels).item()
@@ -83,7 +83,7 @@ class ModelWithTemperature(nn.Module):
             if ece_val > after_temperature_ece:
                 T_opt_ece = T
                 ece_val = after_temperature_ece
-            T += 0.1
+            T += 0.01
 
         if cross_validate == 'ece':
             self.temperature = T_opt_ece
