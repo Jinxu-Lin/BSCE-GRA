@@ -276,8 +276,8 @@ def resnet34(temp=1.0, **kwargs):
     return model
 
 
-def resnet50(temp=1.0, **kwargs):
-    model = ResNet(Bottleneck, [3, 4, 6, 3], temp=temp, **kwargs)
+def resnet50(**kwargs):
+    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     return model
 
 
