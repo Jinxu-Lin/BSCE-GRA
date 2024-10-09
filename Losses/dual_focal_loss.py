@@ -50,10 +50,11 @@ class DualFocalLossGra(nn.Module):
         logp_k = logp_k.view(-1)
         p_k = logp_k.exp()  # p_k: probility at target label
         p_j_mask = torch.lt(softmax_logits, p_k.reshape(p_k.shape[0], 1)) * 1  # mask all logit larger and equal than p_k
-        p_j = torch.topk(p_j_mask * softmax_logits, 1)[0].squeeze()
+
 
         with torch.no_grad():
-            f_p = (1 - p_k + p_j) ** self.gamma
+            p_j = torch.topk(p_j_mask * softmax_logits, 1)[0].squeeze()
+        f_p = (1 - p_k + p_j) ** self.gamma
         loss = -1 * f_p * logp_k
 
         if self.size_average: return loss.mean()

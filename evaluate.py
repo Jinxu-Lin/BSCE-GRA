@@ -298,10 +298,11 @@ if __name__ == "__main__":
     res_str += '&{:.4f}({:.2f})&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(nll,  T_opt,  ece,  adaece, cece, bs)
 
     if args.log:
-        print ('Optimal temperature: ' + str(T_opt))
         print (conf_matrix)
+        print ('Optimal temperature: {:.2f}'.format(T_opt))
+
         print('Test error: {:.2f}%'.format((1 - accuracy) * 100))
-        print('Test NLL: {:.2f}'.format(nll * 100))
+        # print('Test NLL: {:.2f}'.format(nll * 100))
         print('ECE: {:.2f}'.format(ece * 100))
         print('AdaECE: {:.2f}'.format(adaece * 100))
         print('Classwise ECE: {:.2f}'.format(cece * 100))
