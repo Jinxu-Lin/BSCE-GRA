@@ -18,7 +18,7 @@ from Losses.brier_score import BSCELoss, BSCELossGra, BSCELossAdaptiveGra, TLBSL
 from Losses.ece import ECELoss
 from Losses.dece import DECE
 from Losses.ce import CrossEntropy, CrossEntropyExp, CrossEntropyWeightBS
-
+from Losses.consistency import ConsistencyLoss
 def cross_entropy(args, device):
     return CrossEntropy()
 
@@ -98,6 +98,9 @@ def tlbs(args, device):
 
 def dece(args, device):
     return DECE(device = device, num_bins = args.num_bins, t_a = 100, t_b = 0.01)
+
+def consistency(args, device):
+    return ConsistencyLoss(gamma=args.gamma)
     
 def set_loss_function(args, device):
     loss_function_dict = {
@@ -127,6 +130,7 @@ def set_loss_function(args, device):
         'ece_loss': ece_loss,
         'tlbs': tlbs,
         'dece': dece,
+        'consistency': consistency,
     }    
     # Get the loss function based on the args.loss_function
     if args.loss_function not in loss_function_dict:

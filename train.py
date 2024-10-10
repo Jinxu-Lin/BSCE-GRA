@@ -15,6 +15,8 @@ import time
 import os
 import wandb
 
+from calibrator import LocalCalibrator
+
 # Import dataloaders
 import Data.cifar10 as cifar10
 import Data.cifar100 as cifar100
@@ -29,7 +31,7 @@ from Net.vit import vit
 # Import loss functions
 from Losses.loss import set_loss_function
 # Import train and validation utilities
-from Utils.train_utils import train_single_epoch
+from Utils.train_utils import train_single_epoch, train_single_epoch_warmup
 from Utils.eval_utils import evaluate_dataset
 
 # Import validation metrics
@@ -96,6 +98,7 @@ def loss_function_save_name(loss_function,
         'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
         'ece_loss': 'ece_loss_' + str(num_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
+        'consistency': 'consistency',
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -125,6 +128,7 @@ def parseArgs():
     momentum = 0.9
     optimiser = "sgd"
     loss = "cross_entropy"
+    warm_up_epochs = 5
 
     gamma = 1.0
     gamma2 = 1.0
@@ -193,6 +197,8 @@ def parseArgs():
     parser.add_argument("--opt", type=str, default=optimiser,
                         dest="optimiser",
                         help='Choice of optimisation algorithm')
+    parser.add_argument("--warm-up-epochs", type=int, default=warm_up_epochs, dest="warm_up_epochs",
+                        help="Warm up epochs")
 
     # loss
     parser.add_argument("--loss", type=str, default=loss, dest="loss_function",
@@ -347,6 +353,9 @@ if __name__ == "__main__":
         
     # Set loss function
     loss_function = set_loss_function(args, device)
+    # Set Calibrator
+    if args.loss_function == 'consistency':
+        calibrator = LocalCalibrator()
 
     training_set_loss = {}
     val_set_loss = {}
@@ -354,12 +363,47 @@ if __name__ == "__main__":
     val_set_err = {}
     val_set_ece = {}
 
-    for epoch in range(0, start_epoch):
+    # load from checkpoint
+    if args.load:
+        for epoch in range(0, start_epoch):
+            scheduler.step()
+
+    # warm up
+    eps_opt = 1
+    for epoch in range(0, args.warm_up_epochs):
+
+        # Gamma schedule for focal loss
+        if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
+            if (epoch < args.gamma_schedule_step1):
+                gamma = args.gamma
+            elif (epoch >= args.gamma_schedule_step1 and epoch < args.gamma_schedule_step2):
+                gamma = args.gamma2
+            else:
+                gamma = args.gamma3
+        else:
+            gamma = args.gamma
+        
+        train_loss = train_single_epoch_warmup(args,
+                                        epoch,
+                                        net,
+                                        train_loader,
+                                        val_loader,
+                                        optimizer,
+                                        device,
+                                        loss_function=loss_function,
+                                        num_labels=num_classes,
+                                        )
         scheduler.step()
+        (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
+        val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+
+        eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
 
     best_val_acc = 0
     best_ece = 1.0
-    for epoch in range(start_epoch, num_epochs):
+
+
+    for epoch in range(args.warm_up_epochs, num_epochs):
         
         # Gamma schedule for focal loss
         if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
@@ -371,10 +415,7 @@ if __name__ == "__main__":
                 gamma = args.gamma3
         else:
             gamma = args.gamma
-            
-            
-        print("args.save_interval",args.save_interval)
-
+        
         train_loss = train_single_epoch(args,
                                         epoch,
                                         net,
@@ -384,6 +425,7 @@ if __name__ == "__main__":
                                         device,
                                         loss_function=loss_function,
                                         num_labels=num_classes,
+                                        calibrator=calibrator,
                                     )
         
         scheduler.step()
@@ -391,11 +433,10 @@ if __name__ == "__main__":
         # This evaluates the current model on the validation set to collect various performance statistics.
         # This calls the "evaluate_dataset" function implemented in utils/eval_utils.py
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
-        val_adaece, val_adabin_dict, val_mce, val_classwise_ece) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+        val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
-        test_adaece, test_adabin_dict, test_mce, test_classwise_ece) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
-        
+        eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+
         wandb.log(
             {
                 "epoch": epoch,
@@ -403,13 +444,11 @@ if __name__ == "__main__":
                 "val_loss": val_loss,
                 "val_acc": val_acc,
                 "val_ece": val_ece,
-                "test_ece": test_ece
             }
         )
 
         training_set_loss[epoch] = train_loss
         val_set_loss[epoch] = val_loss
-        test_set_loss[epoch] = test_loss
         val_set_err[epoch] = 1 - val_acc
         val_set_ece[epoch] = float(val_ece)
 
