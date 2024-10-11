@@ -440,7 +440,8 @@ if __name__ == "__main__":
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
         val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+        if args.loss_function == 'consistency':
+            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
 
         wandb.log(
             {
