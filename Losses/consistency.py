@@ -25,7 +25,10 @@ class ConsistencyLoss(nn.Module):
 
         prob = calibrated_probability.gather(1,target).view(-1)
 
-        loss = -1 * (1-prob).abs()**self.gamma * logpt
+        with torch.no_grad():
+            weight = (1-prob)**self.gamma
+
+        loss = -1 * weight * logpt
 
         if self.size_average: return loss.mean()
         else: return loss.sum()
