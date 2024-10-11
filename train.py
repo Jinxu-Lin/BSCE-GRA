@@ -395,7 +395,9 @@ if __name__ == "__main__":
                                         )
         scheduler.step()
 
-        train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(fulldataset_logits, labels_list, num_bins=args.num_bins)
+        if args.loss_function == 'ece_loss':
+            train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(fulldataset_logits, labels_list, num_bins=args.num_bins)
+        
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
         val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
