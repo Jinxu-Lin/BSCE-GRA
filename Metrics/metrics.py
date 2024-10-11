@@ -362,7 +362,7 @@ class ClasswiseECELoss(nn.Module):
                 per_class_sce = torch.cat((per_class_sce, class_sce), dim=0)
 
         sce = torch.mean(per_class_sce)
-        return sce
+        return sce, per_class_sce
 
 class ConfAccLoss(nn.Module):
     def __init__(self, n_bins=15):

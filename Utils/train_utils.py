@@ -91,13 +91,20 @@ def train_single_epoch_warmup(args,
     model.train()
     train_loss = 0
     num_samples = 0
+    labels_list = []
     for batch_idx, (data, labels) in enumerate(train_loader):
         data = data.to(device)
         labels = labels.to(device)
 
+
         optimizer.zero_grad()
 
         logits = model(data)
+
+        if batch_idx == 0:
+            fulldataset_logits = logits
+        else:
+            fulldataset_logits = torch.cat((fulldataset_logits, logits), dim=0)
         
         loss = F.cross_entropy(logits, labels)
 
@@ -127,7 +134,9 @@ def train_single_epoch_warmup(args,
             (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
             val_adaece, val_adabin_dict, val_mce, val_classwise_ece) = evaluate_dataset(model, val_loader, device, num_bins=args.num_bins, num_labels=num_labels)
             loss_function.update_bin_stats(val_adabin_dict)
+
+        labels_list.extend(labels.cpu().numpy().tolist())
             
     train_loss = train_loss/num_samples
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss))
-    return train_loss, loss_function
+    return train_loss, loss_function, labels_list, fulldataset_logits

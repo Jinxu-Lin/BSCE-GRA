@@ -32,7 +32,7 @@ from Net.vit import vit
 from Losses.loss import set_loss_function
 # Import train and validation utilities
 from Utils.train_utils import train_single_epoch, train_single_epoch_warmup
-from Utils.eval_utils import evaluate_dataset
+from Utils.eval_utils import evaluate_dataset, evaluate_dataset_train
 
 # Import validation metrics
 from Metrics.metrics import test_classification_net
@@ -96,9 +96,9 @@ def loss_function_save_name(loss_function,
         'bsce': 'bsce_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
         'bsce_gra': 'bsce_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
         'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
-        'ece_loss': 'ece_loss_' + str(num_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
         'consistency': 'consistency',
+        'ece_loss': 'ece_loss_' + str(num_bins),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -383,7 +383,7 @@ if __name__ == "__main__":
         else:
             gamma = args.gamma
         
-        train_loss = train_single_epoch_warmup(args,
+        train_loss, _, labels_list, fulldataset_logits = train_single_epoch_warmup(args,
                                         epoch,
                                         net,
                                         train_loader,
@@ -394,10 +394,13 @@ if __name__ == "__main__":
                                         num_labels=num_classes,
                                         )
         scheduler.step()
-        (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
-        val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+        train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(fulldataset_logits, labels_list, num_bins=args.num_bins)
+        (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
+        val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+
+        if args.loss_function == 'consistency':
+            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))    
 
     best_val_acc = 0
     best_ece = 1.0

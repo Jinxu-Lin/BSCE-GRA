@@ -183,6 +183,7 @@ def loss_function_save_name(loss_function,
         'bsce_adaptive_gra': 'bsce_adaptive_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
         'ece_loss': 'ece_loss_' + str(num_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
+        'consistency': 'consistency',
     }
     res_str = res_dict[loss_function]
     return res_str
@@ -265,7 +266,8 @@ if __name__ == "__main__":
 
     p_ece = ece_criterion(logits, labels).item()
     p_adaece = adaece_criterion(logits, labels).item()
-    p_cece = cece_criterion(logits, labels).item()
+    p_cece, _ = cece_criterion(logits, labels)
+    p_cece = p_cece.item()
     p_nll = nll_criterion(logits, labels).item()
     p_bs = bs_criterion(logits,labels).item()
 

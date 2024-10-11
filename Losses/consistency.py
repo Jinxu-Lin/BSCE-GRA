@@ -25,7 +25,7 @@ class ConsistencyLoss(nn.Module):
 
         prob = calibrated_probability.gather(1,target).view(-1)
 
-        loss = -1 * (prob-pt).abs()**self.gamma * logpt
+        loss = -1 * (1-prob).abs()**self.gamma * logpt
 
         if self.size_average: return loss.mean()
         else: return loss.sum()
