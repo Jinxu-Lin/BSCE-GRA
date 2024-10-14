@@ -1,10 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-from calibrator.calibrator import Calibrator
-from calibrator.metrics import ECE
-import numpy as np
 
 class ConsistencyLoss(nn.Module):
     def __init__(self, size_average=False, gamma=3.0):

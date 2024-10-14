@@ -383,7 +383,7 @@ if __name__ == "__main__":
         else:
             gamma = args.gamma
         
-        train_loss, _, labels_list, fulldataset_logits = train_single_epoch_warmup(args,
+        train_loss, _, labels_list, fulldataset_logits, predictions_list, confidence_list = train_single_epoch_warmup(args,
                                         epoch,
                                         net,
                                         train_loader,
@@ -396,13 +396,29 @@ if __name__ == "__main__":
         scheduler.step()
 
         if args.loss_function == 'ece_loss':
-            train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(fulldataset_logits, labels_list, num_bins=args.num_bins)
-        
+            train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(labels_list, fulldataset_logits, predictions_list, confidence_list, num_bins=args.num_bins)
+            loss_function.update_bin_stats(train_bin_dict, train_adabin_dict, train_classwise_dict)
+
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
         val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
+        (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
+        test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+
         if args.loss_function == 'consistency':
-            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))    
+            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+
+        wandb.log(
+            {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "val_acc": val_acc,
+                "val_ece": val_ece,
+                'test_ece': test_ece,
+            }
+        )
+
 
     best_val_acc = 0
     best_ece = 1.0
@@ -421,7 +437,7 @@ if __name__ == "__main__":
         else:
             gamma = args.gamma
         
-        train_loss = train_single_epoch(args,
+        train_loss, _, labels_list, fulldataset_logits, predictions_list, confidence_list = train_single_epoch(args,
                                         epoch,
                                         net,
                                         train_loader,
@@ -435,10 +451,17 @@ if __name__ == "__main__":
         
         scheduler.step()
 
+        if args.loss_function == 'ece_loss':
+            train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(labels_list, fulldataset_logits, predictions_list, confidence_list, num_bins=args.num_bins)
+            loss_function.update_bin_stats(train_bin_dict, train_adabin_dict, train_classwise_dict)
+
         # This evaluates the current model on the validation set to collect various performance statistics.
         # This calls the "evaluate_dataset" function implemented in utils/eval_utils.py
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
         val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+
+        (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
+        test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
         if args.loss_function == 'consistency':
             eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
@@ -450,6 +473,7 @@ if __name__ == "__main__":
                 "val_loss": val_loss,
                 "val_acc": val_acc,
                 "val_ece": val_ece,
+                'test_ece': test_ece,
             }
         )
 

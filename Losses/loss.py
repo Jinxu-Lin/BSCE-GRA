@@ -58,7 +58,7 @@ def ada_focal(args, device):
     return AdaFocal(args=args, device=device)
 
 def ece_loss(args, device):
-    return ECELoss(n_bins=args.n_bins)
+    return ECELoss()
 
 def mmce(args, device):
     return MMCE(device=device, lamda=args.lamda)

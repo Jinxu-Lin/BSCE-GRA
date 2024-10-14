@@ -293,7 +293,8 @@ if __name__ == "__main__":
 
     ece = ece_criterion(logits, labels).item()
     adaece = adaece_criterion(logits, labels).item()
-    cece = cece_criterion(logits, labels).item()
+    cece, _ = cece_criterion(logits, labels)
+    cece = cece.item()
     nll = nll_criterion(logits, labels).item()
     bs = bs_criterion(logits,labels).item()
 

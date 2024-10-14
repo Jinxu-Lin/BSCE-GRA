@@ -25,6 +25,9 @@ def train_single_epoch(args,
     model.train()
     train_loss = 0
     num_samples = 0
+    predictions_list = []
+    confidence_list = []
+    labels_list = []
     for batch_idx, (data, labels) in enumerate(train_loader):
         data = data.to(device)
         labels = labels.to(device)
@@ -32,6 +35,12 @@ def train_single_epoch(args,
         optimizer.zero_grad()
 
         logits = model(data)
+
+        if batch_idx == 0:
+            fulldataset_logits = logits
+        else:
+            fulldataset_logits = torch.cat((fulldataset_logits, logits), dim=0)
+
         # Obtain ground truth probabilities
         if args.loss_function == "consistency":
             calibrated_probability = calibrator.calibrate(logits)
@@ -41,6 +50,11 @@ def train_single_epoch(args,
                 loss = (len(data) * loss_function(logits, labels))
             else:
                 loss = loss_function(logits, labels)
+
+        # Compute confidence values
+        log_softmax = F.log_softmax(logits, dim=1)
+        log_confidence, predictions = torch.max(log_softmax, dim=1)
+        confidence = log_confidence.exp()  
 
         if args.loss_mean:
             loss = loss / len(data)
@@ -68,10 +82,15 @@ def train_single_epoch(args,
             (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
             val_adaece, val_adabin_dict, val_mce, val_classwise_ece) = evaluate_dataset(model, val_loader, device, num_bins=args.num_bins, num_labels=num_labels)
             loss_function.update_bin_stats(val_adabin_dict)
+
+        # Collect predictions, confidence values, and labels over the entire dataset
+        predictions_list.extend(predictions.cpu().numpy().tolist())
+        confidence_list.extend(confidence.detach().cpu().numpy().tolist())
+        labels_list.extend(labels.cpu().numpy().tolist())
             
     train_loss = train_loss/num_samples
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss))
-    return train_loss, loss_function
+    return train_loss, loss_function, labels_list, fulldataset_logits, predictions_list, confidence_list
 
 
 def train_single_epoch_warmup(args,
@@ -91,6 +110,8 @@ def train_single_epoch_warmup(args,
     model.train()
     train_loss = 0
     num_samples = 0
+    predictions_list = []
+    confidence_list = []
     labels_list = []
     for batch_idx, (data, labels) in enumerate(train_loader):
         data = data.to(device)
@@ -107,6 +128,11 @@ def train_single_epoch_warmup(args,
             fulldataset_logits = torch.cat((fulldataset_logits, logits), dim=0)
         
         loss = F.cross_entropy(logits, labels)
+
+        # Compute confidence values
+        log_softmax = F.log_softmax(logits, dim=1)
+        log_confidence, predictions = torch.max(log_softmax, dim=1)
+        confidence = log_confidence.exp()    
 
         if args.loss_mean:
             loss = loss / len(data)
@@ -134,9 +160,12 @@ def train_single_epoch_warmup(args,
             (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
             val_adaece, val_adabin_dict, val_mce, val_classwise_ece) = evaluate_dataset(model, val_loader, device, num_bins=args.num_bins, num_labels=num_labels)
             loss_function.update_bin_stats(val_adabin_dict)
-
+        
+        # Collect predictions, confidence values, and labels over the entire dataset
+        predictions_list.extend(predictions.cpu().numpy().tolist())
+        confidence_list.extend(confidence.detach().cpu().numpy().tolist())
         labels_list.extend(labels.cpu().numpy().tolist())
             
     train_loss = train_loss/num_samples
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss))
-    return train_loss, loss_function, labels_list, fulldataset_logits
+    return train_loss, loss_function, labels_list, fulldataset_logits, predictions_list, confidence_list
