@@ -31,16 +31,15 @@ class ECELoss(nn.Module):
         with torch.no_grad():
 
             # Calculate ECE
-            ece_values = torch.zeros(len(prob)).to(prob.device)
-            for p in prob:
-                ece_value = None
+            ece_value = torch.zeros(len(prob)).to(prob.device)
+            for i, p in enumerate(prob):
                 for bin_index, bin_info in self.bin_dict.items():
                     lower_bound = bin_info.get('lower_bound', 0)
                     upper_bound = bin_info.get('upper_bound', 1)
                     if lower_bound <= p < upper_bound:
-                        ece_value = bin_info.get('ece', None)
+                        ece_value[i] = bin_info.get('ece', None)
                         break
-                ece_values.append(ece_value)
+
 
             # Calculate AdaECE
             ada_ece_values = torch.zeros(len(prob)).to(prob.device)
@@ -62,9 +61,9 @@ class ECELoss(nn.Module):
             ada_ece_values = ada_ece_values[torch.argsort(sorted_indices)]
 
             # Calculate classwise ECE
-            classwise_ece_values = self.bin_classwise_dict[target]
+            classwise_ece_values = self.bin_classwise_dict[target].view(-1).squeeze()
 
-            weight = (ece_values + ada_ece_values + classwise_ece_values) / 3
+            weight = (ece_value + ada_ece_values + classwise_ece_values)
 
 
         loss = -1 * weight * logpt

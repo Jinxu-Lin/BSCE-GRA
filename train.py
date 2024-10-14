@@ -356,6 +356,8 @@ if __name__ == "__main__":
     # Set Calibrator
     if args.loss_function == 'consistency':
         calibrator = LocalCalibrator()
+    else:
+        calibrator = None
 
     training_set_loss = {}
     val_set_loss = {}
