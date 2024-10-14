@@ -397,12 +397,15 @@ if __name__ == "__main__":
                                         )
         scheduler.step()
 
-        if args.loss_function == 'ece_loss':
-            train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(labels_list, fulldataset_logits, predictions_list, confidence_list, num_bins=args.num_bins)
-            loss_function.update_bin_stats(train_bin_dict, train_adabin_dict, train_classwise_dict)
+        # if args.loss_function == 'ece_loss':
+        #     train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(labels_list, fulldataset_logits, predictions_list, confidence_list, num_bins=args.num_bins)
+        #     loss_function.update_bin_stats(train_bin_dict, train_adabin_dict, train_classwise_dict)
 
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
         val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+
+        if args.loss_function == 'ece_loss':
+            loss_function.update_bin_stats(val_bin_dict, val_adabin_dict, val_classwise_dict)
 
         (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
         test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
