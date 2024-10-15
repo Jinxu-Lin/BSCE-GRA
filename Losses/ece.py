@@ -63,7 +63,7 @@ class ECELoss(nn.Module):
             # Calculate classwise ECE
             classwise_ece_values = self.bin_classwise_dict[target].view(-1).squeeze()
 
-            weight = (ada_ece_values)
+            weight = (ece_value).abs()
 
 
         loss = -1 * weight * logpt
