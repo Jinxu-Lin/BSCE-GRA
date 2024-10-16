@@ -10,7 +10,7 @@ class ECELoss(nn.Module):
         self.bin_dict = collections.defaultdict(dict)
         self.bin_ada_dict = collections.defaultdict(dict)
         self.bin_classwise_dict = None
-
+        self.lambda_classwise = 2
     def update_bin_stats(self, bin_dict, bin_ada_dict, bin_classwise_dict):
         self.bin_dict = bin_dict
         self.bin_ada_dict = bin_ada_dict
@@ -63,7 +63,7 @@ class ECELoss(nn.Module):
             # Calculate classwise ECE
             classwise_ece_values = self.bin_classwise_dict[target].view(-1).squeeze()
 
-            weight = (ece_value).abs()
+            weight = ((ece_value).abs()+self.lambda_classwise*(classwise_ece_values).abs())/2
 
 
         loss = -1 * weight * logpt
