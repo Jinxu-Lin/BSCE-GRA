@@ -318,8 +318,8 @@ if __name__ == "__main__":
         optimizer = optim.Adam(opt_params,
                                lr=args.learning_rate,
                                weight_decay=args.weight_decay)
-    # scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.first_milestone, args.second_milestone], gamma=0.1)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epoch, eta_min=0)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.first_milestone, args.second_milestone], gamma=0.1)
+    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epoch, eta_min=0)
 
     if (args.dataset == 'tiny_imagenet'):
         train_loader = dataset_loader[args.dataset].get_data_loader(

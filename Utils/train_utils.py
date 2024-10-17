@@ -45,11 +45,12 @@ def train_single_epoch(args,
         if args.loss_function == "consistency":
             calibrated_probability = calibrator.calibrate(logits)
             loss = loss_function(logits, labels, calibrated_probability)
+        elif args.loss_function in ('mmce', 'mmce_gra', 'mmce_weighted'):
+            loss = (len(data) * loss_function(logits, labels))
+        elif args.loss_function == "ece_loss":
+            loss = loss_function(logits, labels, epoch)
         else:
-            if args.loss_function in ('mmce', 'mmce_gra', 'mmce_weighted'):
-                loss = (len(data) * loss_function(logits, labels))
-            else:
-                loss = loss_function(logits, labels)
+            loss = loss_function(logits, labels)
 
         # Compute confidence values
         log_softmax = F.log_softmax(logits, dim=1)
@@ -127,7 +128,7 @@ def train_single_epoch_warmup(args,
         else:
             fulldataset_logits = torch.cat((fulldataset_logits, logits), dim=0)
         
-        loss = F.cross_entropy(logits, labels)
+        loss = F.cross_entropy(logits, labels, reduction='sum')
 
         # Compute confidence values
         log_softmax = F.log_softmax(logits, dim=1)

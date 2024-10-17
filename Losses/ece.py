@@ -4,9 +4,10 @@ import torch.nn.functional as F
 import collections
 import numpy as np
 class ECELoss(nn.Module):
-    def __init__(self, size_average=False):
+    def __init__(self, size_average=False, total_epoch=350):
         super(ECELoss, self).__init__()
         self.size_average = size_average
+        self.total_epoch = total_epoch
         self.bin_dict = collections.defaultdict(dict)
         self.bin_ada_dict = collections.defaultdict(dict)
         self.bin_classwise_dict = None
@@ -16,7 +17,7 @@ class ECELoss(nn.Module):
         self.bin_ada_dict = bin_ada_dict
         self.bin_classwise_dict = bin_classwise_dict
 
-    def forward(self, input, target):
+    def forward(self, input, target, current_epoch):
         if input.dim()>2:
             input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
             input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
@@ -63,9 +64,10 @@ class ECELoss(nn.Module):
             # Calculate classwise ECE
             classwise_ece_values = self.bin_classwise_dict[target].view(-1).squeeze()
 
-            weight = ((ece_value).abs()+self.lambda_classwise*(classwise_ece_values).abs())/2
+            weight = ((ece_value).abs() + ada_ece_values.abs() + self.lambda_classwise*(classwise_ece_values).abs())/3
 
-
+        lambda_weight = 1 - (current_epoch / self.total_epoch)
+        weight = lambda_weight + (1 - lambda_weight) * weight
         loss = -1 * weight * logpt
 
         if self.size_average: return loss.mean()
