@@ -41,7 +41,7 @@ def train_single_epoch(args,
         else:
             fulldataset_logits = torch.cat((fulldataset_logits, logits), dim=0)
 
-        # Obtain ground truth probabilities
+        # Compute loss
         if args.loss_function == "consistency":
             calibrated_probability = calibrator.calibrate(logits)
             loss = loss_function(logits, labels, calibrated_probability)
@@ -170,3 +170,8 @@ def train_single_epoch_warmup(args,
     train_loss = train_loss/num_samples
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss))
     return train_loss, loss_function, labels_list, fulldataset_logits, predictions_list, confidence_list
+
+
+def set_temperature(model):
+    temperature = 1.0
+    return temperature

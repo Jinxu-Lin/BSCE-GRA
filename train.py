@@ -99,6 +99,7 @@ def loss_function_save_name(loss_function,
         'tlbs': 'tlbs_gamma_' + str(gamma),
         'consistency': 'consistency',
         'ece_loss': 'ece_loss_' + str(num_bins),
+        'temperature_focal_loss': 'temperature_focal_loss_',
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -359,7 +360,9 @@ if __name__ == "__main__":
         calibrator = LocalCalibrator()
     else:
         calibrator = None
-
+    # Set temperature
+    temperature = 1.0
+    
     training_set_loss = {}
     val_set_loss = {}
     test_set_loss = {}
@@ -407,12 +410,13 @@ if __name__ == "__main__":
 
         if args.loss_function == 'ece_loss':
             loss_function.update_bin_stats(val_bin_dict, val_adabin_dict, val_classwise_dict)
-
+        elif args.loss_function == 'consistency':
+            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+        elif args.loss_function == 'temperature_focal_loss':
+            loss_function.update_temperature(val_logits, torch.tensor(val_labels).to(device))
+        
         (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
         test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
-
-        if args.loss_function == 'consistency':
-            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
 
         wandb.log(
             {
