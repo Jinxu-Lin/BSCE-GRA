@@ -27,8 +27,10 @@ class TemperatureFocalLoss(nn.Module):
         # Calculate the temperature-scaled probabilities
         pt = F.softmax(self.temperature_scale(logits), dim=-1)
         pt = pt.gather(1, target).view(-1)
+        with torch.no_grad():
+            weight = (1-pt)**self.gamma
 
-        loss = -1 * (1-pt)**self.gamma * logpt
+        loss = -1 * weight * logpt
 
         if self.size_average: return loss.mean()
         else: return loss.sum()
