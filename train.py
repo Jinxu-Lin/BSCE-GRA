@@ -106,10 +106,10 @@ def loss_function_save_name(loss_function,
         'tlbs': 'tlbs_gamma_' + str(gamma),
         'consistency': 'consistency',
         'ece_loss': 'ece_loss_' + str(num_bins),
-        'temperature_focal_loss': 'temperature_focal_loss_' + str(gamma),
-        'temperature_focal_loss_adaptive': 'temperature_focal_loss_adaptive_' + str(gamma),
-        'temperature_focal_loss_gra': 'temperature_focal_loss_gra_' + str(gamma),
-        'temperature_focal_loss_adaptive_gra': 'temperature_focal_loss_adaptive_gra_' + str(gamma),
+        'temperature_focal_loss': 'temperature_focal_loss_gamma_' + str(gamma),
+        'temperature_focal_loss_adaptive': 'temperature_focal_loss_adaptive_gamma_' + str(gamma),
+        'temperature_focal_loss_gra': 'temperature_focal_loss_gra_gamma_' + str(gamma),
+        'temperature_focal_loss_adaptive_gra': 'temperature_focal_loss_adaptive_gra_gamma_' + str(gamma),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
