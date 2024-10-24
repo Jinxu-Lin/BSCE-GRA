@@ -281,14 +281,14 @@ if __name__ == "__main__":
 
     os.makedirs(os.path.join(save_loc, 'csv'), exist_ok=True)
     csv_file_path = os.path.join(save_loc, 'csv')
-    csv_file = save_loc + '/csv/' + args.model_name + '_' + \
+    csv_file = args.model_name + '_' + \
             loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
             '.csv'
 
-    with open(csv_file_path+csv_file, mode='w', newline='') as file:
+    with open(csv_file_path+'/'+csv_file, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["args"] + [f"{key}={value}" for key, value in vars(args).items()])
-        writer.writerow(["epoch", "train_loss", "val_loss", "val_acc", "val_ece", "test_ece"])
+        writer.writerow(["epoch", "train_loss", "val_loss", "val_acc", "val_ece", "test_acc", "test_ece"])
 
     cuda = False
     if (torch.cuda.is_available() and args.gpu):
@@ -368,12 +368,6 @@ if __name__ == "__main__":
         calibrator = None
     # Set temperature
     temperature = 1.0
-    
-    training_set_loss = {}
-    val_set_loss = {}
-    test_set_loss = {}
-    val_set_err = {}
-    val_set_ece = {}
 
     # load from checkpoint
     if args.load:
@@ -424,9 +418,9 @@ if __name__ == "__main__":
         (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
         test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        with open(csv_file_path, mode='a', newline='') as file:
+        with open(csv_file_path+'/'+csv_file, mode='a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_ece])
+            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_acc, test_ece])
 
 
     best_val_acc = 0
@@ -475,16 +469,6 @@ if __name__ == "__main__":
         if args.loss_function == 'consistency':
             eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
 
-        with open(csv_file_path, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_ece])
-
-        training_set_loss[epoch] = train_loss
-        val_set_loss[epoch] = val_loss
-        val_set_err[epoch] = 1 - val_acc
-        val_set_ece[epoch] = float(val_ece)
-
-
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
@@ -504,3 +488,7 @@ if __name__ == "__main__":
                         loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
                         '_' + str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
+
+        with open(csv_file_path+'/'+csv_file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_acc, test_ece])

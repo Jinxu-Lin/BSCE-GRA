@@ -35,8 +35,9 @@ class TemperatureFocalLoss(nn.Module):
         # Calculate the temperature-scaled probabilities
         pt = F.softmax(self.temperature_scale(logits), dim=-1)
         pt = pt.gather(1, target).view(-1)
+        gamma = self.get_gamma_list(pt)
         with torch.no_grad():
-            weight = (1-pt)**self.gamma
+            weight = (1-pt)**gamma
 
         loss = -1 * weight * logpt
 
@@ -56,7 +57,7 @@ class TemperatureFocalLoss(nn.Module):
                 if pt_sample < key:
                     gamma_list.append(gamma_dic[key])
                     break
-        return torch.tensor(gamma_list).to(self.device)
+        return torch.tensor(gamma_list).to(pt.device )
 
     def temperature_scale(self, logits):
         return logits / self.temperature
