@@ -11,7 +11,7 @@ from torch.nn import functional as F
 from Losses.focal_loss import FocalLoss, FocalLossGra, FocalLossExp
 from Losses.dual_focal_loss import DualFocalLoss, DualFocalLossGra, DualFocalLossExp
 from Losses.focal_loss_adaptive_gamma import FocalLossAdaptive, FocalLossAdaptiveGra
-from Losses.temperature_focal_loss import TemperatureFocalLoss
+from Losses.temperature_focal_loss import TemperatureFocalLoss, TemperatureFocalLossGra, TemperatureFocalLossAdaptive, TemperatureFocalLossAdaptiveGra
 from Losses.adafocal import AdaFocal
 from Losses.mmce import MMCE, MMCEWeighted, MMCEGRA
 from Losses.brier_score import BrierScore, BrierScoreExp, BrierScoreExpNoClipping, BrierScoreExpNoMinus, BrierScoreExpPure
@@ -105,6 +105,15 @@ def consistency(args, device):
 
 def temperature_focal_loss(args, device):
     return TemperatureFocalLoss(gamma=args.gamma)
+
+def temperature_focal_loss_gra(args, device):
+    return TemperatureFocalLossGra(gamma=args.gamma)
+
+def temperature_focal_loss_adaptive(args, device):
+    return TemperatureFocalLossAdaptive(gamma=args.gamma)
+
+def temperature_focal_loss_adaptive_gra(args, device):
+    return TemperatureFocalLossAdaptiveGra(gamma=args.gamma)
     
 def set_loss_function(args, device):
     loss_function_dict = {
@@ -136,6 +145,9 @@ def set_loss_function(args, device):
         'dece': dece,
         'consistency': consistency,
         'temperature_focal_loss': temperature_focal_loss,
+        'temperature_focal_loss_gra': temperature_focal_loss_gra,
+        'temperature_focal_loss_adaptive': temperature_focal_loss_adaptive,
+        'temperature_focal_loss_adaptive_gra': temperature_focal_loss_adaptive_gra,
     }    
     # Get the loss function based on the args.loss_function
     if args.loss_function not in loss_function_dict:

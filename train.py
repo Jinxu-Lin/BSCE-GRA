@@ -62,6 +62,12 @@ models = {
     'vit': vit
 }
 
+temperature_loss_list = [
+    'temperature_focal_loss',
+    'temperature_focal_loss_adaptive',
+    'temperature_focal_loss_gra',
+    'temperature_focal_loss_adaptive_gra'
+]
 
 def loss_function_save_name(loss_function,
                             scheduled=False,
@@ -101,6 +107,9 @@ def loss_function_save_name(loss_function,
         'consistency': 'consistency',
         'ece_loss': 'ece_loss_' + str(num_bins),
         'temperature_focal_loss': 'temperature_focal_loss_' + str(gamma),
+        'temperature_focal_loss_adaptive': 'temperature_focal_loss_adaptive_' + str(gamma),
+        'temperature_focal_loss_gra': 'temperature_focal_loss_gra_' + str(gamma),
+        'temperature_focal_loss_adaptive_gra': 'temperature_focal_loss_adaptive_gra_' + str(gamma),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -154,7 +163,7 @@ def parseArgs():
     save_loc = './model/'
     model_name = None
     saved_model_name = "resnet50_cross_entropy_350.model"
-    load_loc = './'
+    load_loc = './model/'
     model = "resnet50"
     epoch = 350
     first_milestone = 150 #Milestone for change in lr
@@ -310,7 +319,8 @@ if __name__ == "__main__":
     start_epoch = 0
     num_epochs = args.epoch
     if args.load:
-        net.load_state_dict(torch.load(args.save_loc + args.saved_model_name))
+        load_path = save_loc + '/epoch/' + args.saved_model_name
+        net.load_state_dict(torch.load(load_path))
         start_epoch = int(args.saved_model_name[args.saved_model_name.rfind('_')+1:args.saved_model_name.rfind('.model')])
 
     if args.optimiser == "sgd":
@@ -376,61 +386,64 @@ if __name__ == "__main__":
 
     # warm up
     eps_opt = 1
-    for epoch in range(0, args.warm_up_epochs):
+    if start_epoch < args.warm_up_epochs:
 
-        # Gamma schedule for focal loss
-        if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
-            if (epoch < args.gamma_schedule_step1):
-                gamma = args.gamma
-            elif (epoch >= args.gamma_schedule_step1 and epoch < args.gamma_schedule_step2):
-                gamma = args.gamma2
+        for epoch in range(start_epoch, args.warm_up_epochs):
+
+            # Gamma schedule for focal loss
+            if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
+                if (epoch < args.gamma_schedule_step1):
+                    gamma = args.gamma
+                elif (epoch >= args.gamma_schedule_step1 and epoch < args.gamma_schedule_step2):
+                    gamma = args.gamma2
+                else:
+                    gamma = args.gamma3
             else:
-                gamma = args.gamma3
-        else:
-            gamma = args.gamma
-        
-        train_loss, _, labels_list, fulldataset_logits, predictions_list, confidence_list = train_single_epoch_warmup(args,
-                                        epoch,
-                                        net,
-                                        train_loader,
-                                        val_loader,
-                                        optimizer,
-                                        device,
-                                        loss_function=loss_function,
-                                        num_labels=num_classes,
-                                        )
-        scheduler.step()
+                gamma = args.gamma
+            
+            train_loss, _, labels_list, fulldataset_logits, predictions_list, confidence_list = train_single_epoch_warmup(args,
+                                            epoch,
+                                            net,
+                                            train_loader,
+                                            val_loader,
+                                            optimizer,
+                                            device,
+                                            loss_function=loss_function,
+                                            num_labels=num_classes,
+                                            )
+            scheduler.step()
 
-        # if args.loss_function == 'ece_loss':
-        #     train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(labels_list, fulldataset_logits, predictions_list, confidence_list, num_bins=args.num_bins)
-        #     loss_function.update_bin_stats(train_bin_dict, train_adabin_dict, train_classwise_dict)
+            # if args.loss_function == 'ece_loss':
+            #     train_ece, train_bin_dict, train_adaece, train_adabin_dict, train_classwise_ece, train_classwise_dict = evaluate_dataset_train(labels_list, fulldataset_logits, predictions_list, confidence_list, num_bins=args.num_bins)
+            #     loss_function.update_bin_stats(train_bin_dict, train_adabin_dict, train_classwise_dict)
 
-        (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
-        val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+            (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
+            val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        if args.loss_function == 'ece_loss':
-            loss_function.update_bin_stats(val_bin_dict, val_adabin_dict, val_classwise_dict)
-        elif args.loss_function == 'consistency':
-            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
-        elif args.loss_function == 'temperature_focal_loss':
-            loss_function.update_temperature(val_logits, torch.tensor(val_labels).to(device))
-        
-        (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
-        test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
+            if args.loss_function == 'ece_loss':
+                loss_function.update_bin_stats(val_bin_dict, val_adabin_dict, val_classwise_dict)
+            elif args.loss_function == 'consistency':
+                eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+            elif args.loss_function in temperature_loss_list:
+                loss_function.update_temperature(val_logits, torch.tensor(val_labels).to(device))
+            
+            (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
+            test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        with open(csv_file_path+'/'+csv_file, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_acc, test_ece])
+            with open(csv_file_path+'/'+csv_file, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_acc, test_ece])
 
+        start_epoch = args.warm_up_epochs
 
     best_val_acc = 0
     best_ece = 1.0
 
 
-    for epoch in range(args.warm_up_epochs, num_epochs):
+    for epoch in range(start_epoch, num_epochs):
         
         # Gamma schedule for focal loss
-        if (args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
+        if(args.loss_function == 'focal_loss' and args.gamma_schedule == 1):
             if (epoch < args.gamma_schedule_step1):
                 gamma = args.gamma
             elif (epoch >= args.gamma_schedule_step1 and epoch < args.gamma_schedule_step2):
@@ -439,7 +452,7 @@ if __name__ == "__main__":
                 gamma = args.gamma3
         else:
             gamma = args.gamma
-        
+    
         train_loss, _, labels_list, fulldataset_logits, predictions_list, confidence_list = train_single_epoch(args,
                                         epoch,
                                         net,

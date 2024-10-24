@@ -3,6 +3,7 @@
 
 - `inputs`: the input data
 - `labels`: the ground truth labels
+- `target`: the one-hot encoded labels
 
 - `model`: the model
 
