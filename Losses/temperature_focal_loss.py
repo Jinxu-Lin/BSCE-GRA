@@ -4,6 +4,14 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from Metrics.metrics import ECELoss
 
+ps = [0.2, 0.5]
+gammas = [5.0, 3.0]
+i = 0
+gamma_dic = {}
+for p in ps:
+    gamma_dic[p] = gammas[i]
+    i += 1
+
 class TemperatureFocalLoss(nn.Module):
     def __init__(self, gamma=0, size_average=False, cross_validate='ece', temperature=1.0):
         super(TemperatureFocalLoss, self).__init__()
@@ -34,6 +42,21 @@ class TemperatureFocalLoss(nn.Module):
 
         if self.size_average: return loss.mean()
         else: return loss.sum()
+    
+    def get_gamma_list(self, pt):
+        gamma_list = []
+        batch_size = pt.shape[0]
+        for i in range(batch_size):
+            pt_sample = pt[i].item()
+            if (pt_sample >= 0.5):
+                gamma_list.append(self.gamma)
+                continue
+            # Choosing the gamma for the sample
+            for key in sorted(gamma_dic.keys()):
+                if pt_sample < key:
+                    gamma_list.append(gamma_dic[key])
+                    break
+        return torch.tensor(gamma_list).to(self.device)
 
     def temperature_scale(self, logits):
         return logits / self.temperature

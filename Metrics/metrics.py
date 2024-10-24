@@ -91,7 +91,7 @@ def expected_calibration_error(confs, preds, labels, num_bins=15):
         bin_stats_dict[i]['prop_in_bin'] = float(bin_count)/num_samples
         bin_stats_dict[i]['accuracy_in_bin'] = bin_accuracy
         bin_stats_dict[i]['avg_confidence_in_bin'] = bin_confidence
-        bin_stats_dict[i]['ece'] = bin_stats_dict[i]['avg_confidence_in_bin'] - bin_stats_dict[i]['accuracy_in_bin']
+        bin_stats_dict[i]['ece'] = (bin_stats_dict[i]['avg_confidence_in_bin'] - bin_stats_dict[i]['accuracy_in_bin'])
 
     return ece, bin_stats_dict
 
@@ -144,7 +144,9 @@ def adaECE_error_mukhoti(confs, preds, labels, num_bins=15):
         # np.arange(6) -> array([0, 1, 2, 3, 4, 5])
         # np.interp(np.linspace(0, 6, 3+1), np.arange(6), np.sort(x)) -> array([0.26, 0.61, 0.94, 0.99])
 
-    confidences, predictions, labels = torch.FloatTensor(confs), torch.FloatTensor(preds), torch.FloatTensor(labels)
+    confidences = torch.FloatTensor(confs)
+    predictions = torch.FloatTensor(preds)
+    labels = torch.FloatTensor(labels)
     accuracies = predictions.eq(labels)
     n, bin_boundaries = np.histogram(confidences.cpu().detach(), histedges_equalN(confidences.cpu().detach()))
 

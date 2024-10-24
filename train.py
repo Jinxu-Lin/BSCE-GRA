@@ -14,6 +14,7 @@ import sys
 import time
 import os
 import wandb
+import csv
 
 from calibrator import LocalCalibrator
 
@@ -99,7 +100,7 @@ def loss_function_save_name(loss_function,
         'tlbs': 'tlbs_gamma_' + str(gamma),
         'consistency': 'consistency',
         'ece_loss': 'ece_loss_' + str(num_bins),
-        'temperature_focal_loss': 'temperature_focal_loss_',
+        'temperature_focal_loss': 'temperature_focal_loss_' + str(gamma),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -268,21 +269,26 @@ def parseArgs():
 
 if __name__ == "__main__":
 
-    start_time = time.time()
-
     args = parseArgs()
     set_seeds(args.seed)
 
     # Setting model name
     if args.model_name is None:
         args.model_name = args.model
-    wandb_name = args.dataset+'-'+args.model_name+'-'+args.loss_function+'-'+str(args.seed)
+    save_path = os.path.join(args.save_loc, args.dataset, args.model_name)
+    model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
+    save_loc = os.path.join(save_path, model_name, str(args.seed))
 
-    if args.wandb_offline:
-        os.environ["WANDB_MODE"] = "offline"
-    else:
-        os.environ["WANDB_MODE"] = "online"
-    run = wandb.init(entity="jinxulin2000",project='ReweightingGradientCalibration', name=wandb_name, config=args)
+    os.makedirs(os.path.join(save_loc, 'csv'), exist_ok=True)
+    csv_file_path = os.path.join(save_loc, 'csv')
+    csv_file = save_loc + '/csv/' + args.model_name + '_' + \
+            loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
+            '.csv'
+
+    with open(csv_file_path+csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["args"] + [f"{key}={value}" for key, value in vars(args).items()])
+        writer.writerow(["epoch", "train_loss", "val_loss", "val_acc", "val_ece", "test_ece"])
 
     cuda = False
     if (torch.cuda.is_available() and args.gpu):
@@ -418,16 +424,9 @@ if __name__ == "__main__":
         (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
         test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        wandb.log(
-            {
-                "epoch": epoch,
-                "train_loss": train_loss,
-                "val_loss": val_loss,
-                "val_acc": val_acc,
-                "val_ece": val_ece,
-                'test_ece': test_ece,
-            }
-        )
+        with open(csv_file_path, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_ece])
 
 
     best_val_acc = 0
@@ -476,24 +475,16 @@ if __name__ == "__main__":
         if args.loss_function == 'consistency':
             eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
 
-        wandb.log(
-            {
-                "epoch": epoch,
-                "train_loss": train_loss,
-                "val_loss": val_loss,
-                "val_acc": val_acc,
-                "val_ece": val_ece,
-                'test_ece': test_ece,
-            }
-        )
+        with open(csv_file_path, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_ece])
 
         training_set_loss[epoch] = train_loss
         val_set_loss[epoch] = val_loss
         val_set_err[epoch] = 1 - val_acc
         val_set_ece[epoch] = float(val_ece)
 
-        model_name = args.dataset+'-'+args.model_name+'-'+args.loss_function
-        save_loc = os.path.join(args.save_loc, model_name, str(args.seed))
+
         os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
 
@@ -513,26 +504,3 @@ if __name__ == "__main__":
                         loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
                         '_' + str(epoch + 1) + '.model'
             torch.save(net.state_dict(), save_name)
-
-
-    with open(save_name[:save_name.rfind('_')] + '_train_loss.json', 'a') as f:
-        json.dump(training_set_loss, f)
-
-    with open(save_name[:save_name.rfind('_')] + '_val_loss.json', 'a') as fv:
-        json.dump(val_set_loss, fv)
-
-    with open(save_name[:save_name.rfind('_')] + '_test_loss.json', 'a') as ft:
-        json.dump(test_set_loss, ft)
-
-    with open(save_name[:save_name.rfind('_')] + '_val_error.json', 'a') as ft:
-        json.dump(val_set_err, ft)
-    
-    with open(save_name[:save_name.rfind('_')] + '_val_ece.json', 'a') as ft:
-        json.dump(val_set_ece, ft)
-    
-    wandb.finish()
-    end_time = time.time()
-    total_time = end_time - start_time
-
-    with open(save_name[:save_name.rfind('_')] + '_TIME.json', 'a') as ft:
-        json.dump(total_time, ft)
