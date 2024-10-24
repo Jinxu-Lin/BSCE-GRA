@@ -66,7 +66,9 @@ temperature_loss_list = [
     'temperature_focal_loss',
     'temperature_focal_loss_adaptive',
     'temperature_focal_loss_gra',
-    'temperature_focal_loss_adaptive_gra'
+    'temperature_focal_loss_adaptive_gra',
+    'temperature_dual_focal_loss',
+    'temperature_dual_focal_loss_gra',
 ]
 
 def loss_function_save_name(loss_function,
@@ -110,6 +112,8 @@ def loss_function_save_name(loss_function,
         'temperature_focal_loss_adaptive': 'temperature_focal_loss_adaptive_gamma_' + str(gamma),
         'temperature_focal_loss_gra': 'temperature_focal_loss_gra_gamma_' + str(gamma),
         'temperature_focal_loss_adaptive_gra': 'temperature_focal_loss_adaptive_gra_gamma_' + str(gamma),
+        'temperature_dual_focal_loss': 'temperature_dual_focal_loss_gamma_' + str(gamma),
+        'temperature_dual_focal_loss_gra': 'temperature_dual_focal_loss_gra_gamma_' + str(gamma),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
