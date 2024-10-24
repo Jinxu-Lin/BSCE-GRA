@@ -100,12 +100,12 @@ class TemperatureDualFocalLossAdaptive(nn.Module):
         
         # Calculate the temperature-scaled probabilities
         scaled_probability = F.softmax(self.temperature_scale(logits), dim=-1)
-        pt = scaled_probability.gather(1, labels).view(-1)
+        confidence = scaled_probability.gather(1, labels).view(-1)
 
-        p_j_mask = torch.lt(scaled_probability, pt.reshape(pt.shape[0], 1)) * 1  # mask all logit larger and equal than p_k
+        p_j_mask = torch.lt(scaled_probability, confidence.reshape(confidence.shape[0], 1)) * 1  # mask all logit larger and equal than p_k
         p_j = torch.topk(p_j_mask * scaled_probability, 1)[0].squeeze()
         
-        weight = (1-pt+p_j)**self.gamma
+        weight = (1-confidence+p_j)**self.gamma
 
         loss = -1 * weight * nll
 

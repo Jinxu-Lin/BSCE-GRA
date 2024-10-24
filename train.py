@@ -293,8 +293,8 @@ if __name__ == "__main__":
     csv_file = args.model_name + '_' + \
             loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
             '.csv'
-
-    with open(csv_file_path+'/'+csv_file, mode='w', newline='') as file:
+    mode = 'a' if args.load else 'w'
+    with open(csv_file_path+'/'+csv_file, mode=mode, newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["args"] + [f"{key}={value}" for key, value in vars(args).items()])
         writer.writerow(["epoch", "train_loss", "val_loss", "val_acc", "val_ece", "test_acc", "test_ece"])
