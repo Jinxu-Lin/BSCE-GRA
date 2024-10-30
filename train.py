@@ -143,7 +143,7 @@ def parseArgs():
     momentum = 0.9
     optimiser = "sgd"
     loss = "cross_entropy"
-    warm_up_epochs = 5
+    warm_up_epochs = 0
 
     gamma = 1.0
     gamma2 = 1.0

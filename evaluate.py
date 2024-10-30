@@ -184,6 +184,12 @@ def loss_function_save_name(loss_function,
         'ece_loss': 'ece_loss_' + str(num_bins),
         'tlbs': 'tlbs_gamma_' + str(gamma),
         'consistency': 'consistency',
+        'temperature_focal_loss': 'temperature_focal_loss_gamma_' + str(gamma),
+        'temperature_focal_loss_adaptive': 'temperature_focal_loss_adaptive_gamma_' + str(gamma),
+        'temperature_focal_loss_gra': 'temperature_focal_loss_gra_gamma_' + str(gamma),
+        'temperature_focal_loss_adaptive_gra': 'temperature_focal_loss_adaptive_gra_gamma_' + str(gamma),
+        'temperature_dual_focal_loss': 'temperature_dual_focal_loss_gamma_' + str(gamma),
+        'temperature_dual_focal_loss_gra': 'temperature_dual_focal_loss_gra_gamma_' + str(gamma),
     }
     res_str = res_dict[loss_function]
     return res_str
@@ -207,7 +213,7 @@ if __name__ == "__main__":
     dataset = args.dataset
     dataset_root = args.dataset_root
     model_name = args.model_name
-    save_loc = '/home/jinxulin/UQ/model/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
+    save_loc = '/home/jinxulin/UQ/model/' + args.dataset + '/' + args.model + '/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
     saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
           "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
@@ -285,31 +291,31 @@ if __name__ == "__main__":
 
 
 
-    scaled_model = ModelWithTemperature(net, args.log)
-    scaled_model.set_temperature(test_loader, cross_validate=cross_validation_error)
-    T_opt = scaled_model.get_temperature()
-    logits, labels = get_logits_labels(test_loader, scaled_model)
-    conf_matrix, accuracy, _, _, _ = test_classification_net_logits(logits, labels)
+    # scaled_model = ModelWithTemperature(net, args.log)
+    # scaled_model.set_temperature(test_loader, cross_validate=cross_validation_error)
+    # T_opt = scaled_model.get_temperature()
+    # logits, labels = get_logits_labels(test_loader, scaled_model)
+    # conf_matrix, accuracy, _, _, _ = test_classification_net_logits(logits, labels)
 
-    ece = ece_criterion(logits, labels).item()
-    adaece = adaece_criterion(logits, labels).item()
-    cece, _ = cece_criterion(logits, labels)
-    cece = cece.item()
-    nll = nll_criterion(logits, labels).item()
-    bs = bs_criterion(logits,labels).item()
+    # ece = ece_criterion(logits, labels).item()
+    # adaece = adaece_criterion(logits, labels).item()
+    # cece, _ = cece_criterion(logits, labels)
+    # cece = cece.item()
+    # nll = nll_criterion(logits, labels).item()
+    # bs = bs_criterion(logits,labels).item()
 
-    res_str += '&{:.4f}({:.2f})&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(nll,  T_opt,  ece,  adaece, cece, bs)
+    # res_str += '&{:.4f}({:.2f})&{:.4f}&{:.4f}&{:.4f}&{:.4f}'.format(nll,  T_opt,  ece,  adaece, cece, bs)
 
-    if args.log:
-        print (conf_matrix)
-        print ('Optimal temperature: {:.2f}'.format(T_opt))
+    # if args.log:
+    #     print (conf_matrix)
+    #     print ('Optimal temperature: {:.2f}'.format(T_opt))
 
-        print('Test error: {:.2f}%'.format((1 - accuracy) * 100))
-        # print('Test NLL: {:.2f}'.format(nll * 100))
-        print('ECE: {:.2f}'.format(ece * 100))
-        print('AdaECE: {:.2f}'.format(adaece * 100))
-        print('Classwise ECE: {:.2f}'.format(cece * 100))
-        print('Brier Score: {:.2f}'.format(bs * 100))
+    #     print('Test error: {:.2f}%'.format((1 - accuracy) * 100))
+    #     # print('Test NLL: {:.2f}'.format(nll * 100))
+    #     print('ECE: {:.2f}'.format(ece * 100))
+    #     print('AdaECE: {:.2f}'.format(adaece * 100))
+    #     print('Classwise ECE: {:.2f}'.format(cece * 100))
+    #     print('Brier Score: {:.2f}'.format(bs * 100))
 
     # # Test NLL & ECE & AdaECE & Classwise ECE
     # print(res_str)

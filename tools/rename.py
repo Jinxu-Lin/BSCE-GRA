@@ -2,25 +2,16 @@ import os
 import re
 
 # 指定目录路径
-directory = '/home/jinxulin/UQ/model/cifar10-resnet50-bsce_gra/1/epoch'
+directory = '/home/jinxulin/UQ/model/cifar10/resnet50/cifar10-resnet50-temperature_focal_loss_gra/1/epoch'
 
-# 遍历目录中的所有文件
+# 遍历目录中的文件
 for filename in os.listdir(directory):
-    # 检查文件是否以.model结尾
-    if filename.endswith('.model'):
-        # 使用正则表达式匹配文件名中的模式
-        match = re.search(r'(.*_norm_)(15__1__1)(_.*.model)', filename)
-        
-        if match:
-            # 构造新的文件名
-            new_filename = match.group(1) + '1' + match.group(3)
-            
-            # 构造完整的文件路径
-            old_path = os.path.join(directory, filename)
-            new_path = os.path.join(directory, new_filename)
-            
-            # 重命名文件
-            os.rename(old_path, new_path)
-            print(f'已重命名: {filename} -> {new_filename}')
-
-print('重命名过程完成')
+    # 检查文件名是否符合模式
+    if re.match(r'.*_gra_4.0_.*\.model$', filename):
+        # 构造新的文件名
+        new_filename = re.sub(r'_gra_', '_gra_gamma_', filename)
+        # 获取完整路径
+        old_file = os.path.join(directory, filename)
+        new_file = os.path.join(directory, new_filename)
+        # 重命名文件
+        os.rename(old_file, new_file)
