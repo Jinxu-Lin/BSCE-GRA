@@ -506,3 +506,9 @@ if __name__ == "__main__":
         with open(csv_file_path+'/'+csv_file, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([epoch, train_loss, val_loss, val_acc, val_ece, test_acc, test_ece])
+    
+
+    results_csv_file = 'results.csv'
+    with open(results_csv_file, mode='a', newline='') as results_file:
+        results_writer = csv.writer(results_file)
+        results_writer.writerow([args.dataset, args.model, args.loss_function, args.seed, args.warm_up_epochs, args.gamma, args.bsce_norm, test_acc, test_ece, test_adaece, test_classwise_ece])
