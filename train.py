@@ -69,6 +69,8 @@ temperature_loss_list = [
     'temperature_focal_loss_adaptive_gra',
     'temperature_dual_focal_loss',
     'temperature_dual_focal_loss_gra',
+    'temperature_bsce',
+    'temperature_bsce_gra',
 ]
 
 def loss_function_save_name(loss_function,
@@ -114,6 +116,8 @@ def loss_function_save_name(loss_function,
         'temperature_focal_loss_adaptive_gra': 'temperature_focal_loss_adaptive_gra_gamma_' + str(gamma),
         'temperature_dual_focal_loss': 'temperature_dual_focal_loss_gamma_' + str(gamma),
         'temperature_dual_focal_loss_gra': 'temperature_dual_focal_loss_gra_gamma_' + str(gamma),
+        'temperature_bsce': 'temperature_bsce_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
+        'temperature_bsce_gra': 'temperature_bsce_gra_gamma_' + str(gamma) + '_norm_' + str(bsce_norm),
     }
     if (loss_function == 'focal_loss' and scheduled == True):
         res_str = 'focal_loss_scheduled_gamma_' + str(gamma1) + '_' + str(gamma2) + '_' + str(gamma3)
@@ -480,24 +484,17 @@ if __name__ == "__main__":
         (val_loss, val_confusion_matrix, val_acc, val_ece, val_bin_dict,
         val_adaece, val_adabin_dict, val_mce, val_classwise_ece, val_classwise_dict, val_logits, val_labels) = evaluate_dataset(net, val_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
+        if args.loss_function == 'ece_loss':
+            loss_function.update_bin_stats(val_bin_dict, val_adabin_dict, val_classwise_dict)
+        elif args.loss_function == 'consistency':
+            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
+        elif args.loss_function in temperature_loss_list:
+            loss_function.update_temperature(val_logits, torch.tensor(val_labels).to(device))
+
         (test_loss, test_confusion_matrix, test_acc, test_ece, test_bin_dict, 
         test_adaece, test_adabin_dict, test_mce, test_classwise_ece, test_classwise_dict, test_logits, test_labels) = evaluate_dataset(net, test_loader, device, num_bins=args.num_bins, num_labels=num_classes)
 
-        if args.loss_function == 'consistency':
-            eps_opt = calibrator.fit(val_logits, torch.tensor(val_labels).to(device))
-
-        os.makedirs(os.path.join(save_loc, 'best'), exist_ok=True)
         os.makedirs(os.path.join(save_loc, 'epoch'), exist_ok=True)
-
-        # if val_ece < best_ece:
-        #     best_ece = val_ece
-        #     print('New best ece: %.4f' % best_ece)
-        #     save_name = save_loc + '/best/' + \
-        #                 args.model_name + '_' + \
-        #                 loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.num_bins) + \
-        #                 '_best_ece_' + \
-        #                 str(epoch + 1) + '.model'
-        #     torch.save(net.state_dict(), save_name)
             
         if (epoch + 1) % args.save_interval == 0:
             save_name = save_loc + '/epoch/' + \

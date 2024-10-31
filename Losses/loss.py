@@ -21,6 +21,8 @@ from Losses.ece import ECELoss
 from Losses.dece import DECE
 from Losses.ce import CrossEntropy, CrossEntropyExp, CrossEntropyWeightBS
 from Losses.consistency import ConsistencyLoss
+from Losses.temperature_bsce import TemperatureBSCELoss, TemperatureBSCELossGra
+
 def cross_entropy(args, device):
     return CrossEntropy()
 
@@ -121,6 +123,12 @@ def temperature_dual_focal_loss(args, device):
 
 def temperature_dual_focal_loss_gra(args, device):
     return TemperatureDualFocalLossGra(gamma=args.gamma)
+
+def temperature_bsce(args, device):
+    return TemperatureBSCELoss(gamma=args.gamma, norm=args.bsce_norm)
+
+def temperature_bsce_gra(args, device):
+    return TemperatureBSCELossGra(gamma=args.gamma, norm=args.bsce_norm)
     
 def set_loss_function(args, device):
     loss_function_dict = {
@@ -157,6 +165,8 @@ def set_loss_function(args, device):
         'temperature_focal_loss_adaptive_gra': temperature_focal_loss_adaptive_gra,
         'temperature_dual_focal_loss': temperature_dual_focal_loss,
         'temperature_dual_focal_loss_gra': temperature_dual_focal_loss_gra,
+        'temperature_bsce': temperature_bsce,
+        'temperature_bsce_gra': temperature_bsce_gra,
     }    
     # Get the loss function based on the args.loss_function
     if args.loss_function not in loss_function_dict:
