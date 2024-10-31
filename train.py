@@ -511,4 +511,24 @@ if __name__ == "__main__":
     results_csv_file = 'results.csv'
     with open(results_csv_file, mode='a', newline='') as results_file:
         results_writer = csv.writer(results_file)
-        results_writer.writerow([args.dataset, args.model, args.loss_function, args.seed, args.warm_up_epochs, args.gamma, args.bsce_norm, test_acc, test_ece, test_adaece, test_classwise_ece])
+        # 将 test_acc 转换为百分数形式，限制到小数点后两位
+        formatted_test_acc = f"{(1-test_acc) * 100:.2f}%"
+        
+        # 将 ece 相关值限制到小数点后五位并乘以100
+        formatted_test_ece = f"{test_ece * 100:.2f}"
+        formatted_test_adaece = f"{test_adaece.item() * 100:.2f}"
+        formatted_test_classwise_ece = f"{test_classwise_ece.item() * 100:.2f}"
+
+        results_writer.writerow([
+            args.dataset, 
+            args.model, 
+            args.loss_function, 
+            args.seed, 
+            args.warm_up_epochs, 
+            args.gamma, 
+            args.bsce_norm, 
+            formatted_test_acc, 
+            formatted_test_ece, 
+            formatted_test_adaece, 
+            formatted_test_classwise_ece
+        ])
