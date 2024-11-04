@@ -90,3 +90,11 @@ CUDA_VISIBLE_DEVICES=0 python ../train.py \
 --loss focal_loss_adaptive --gamma 3.0 \
 --save-path MODEL_DIRECTORY/
 
+CUDA_VISIBLE_DEVICES=0 python train.py \
+--dataset tiny_imagenet \
+--first-milestone 40 --second-milestone 60 -e 100 -b 64 -tb 64 \
+--model resnet50 \
+--dataset-root ./data/tiny-imagenet-200 \
+--loss bsce --gamma 4.0 --bsce-norm 2 \
+--save-path ./model/ \
+--seed 1

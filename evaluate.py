@@ -213,7 +213,7 @@ if __name__ == "__main__":
     dataset = args.dataset
     dataset_root = args.dataset_root
     model_name = args.model_name
-    save_loc = '/home/jinxulin/UQ/model/' + args.dataset + '/' + args.model + '/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
+    save_loc = '/home/jinxulin/UQ/model_final/' + args.dataset + '/' + args.model + '/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
     saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
           "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
