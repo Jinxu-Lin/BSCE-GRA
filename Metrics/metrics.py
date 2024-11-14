@@ -344,6 +344,7 @@ class ClasswiseECELoss(nn.Module):
 
         logits = logits.cuda()
         labels = labels.cuda()
+        print(num_classes)
 
         for i in range(num_classes):
             class_confidences = softmaxes[:, i]

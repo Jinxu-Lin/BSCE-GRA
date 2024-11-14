@@ -10,3 +10,7 @@ model1
 model2
 results.csv
 model_final
+results*
+diagram*
+tools
+*.csv

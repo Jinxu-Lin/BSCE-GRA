@@ -26,6 +26,7 @@ from Metrics.metrics import ECELoss, AdaptiveECELoss, ClasswiseECELoss, BrierSco
 # Import temperature scaling and NLL utilities
 from Utils.temperature_scaling import ModelWithTemperature
 
+from Losses.loss import set_loss_function
 
 # Dataset params
 dataset_num_classes = {
@@ -113,7 +114,8 @@ def parseArgs():
                         dest="cross_validation_error", help='Error function to do temp scaling')
     parser.add_argument("-log", action="store_true", dest="log",
                         help="whether to print log data")
-    parser.add_argument("--loss", type=str, default='dual_focal_loss')
+    parser.add_argument("--loss", type=str, dest="loss_function",
+                        help="Loss function to be used for training")
 
     parser.add_argument("--lamda", type=float, default=1.0)
     parser.add_argument("--gamma-schedule", type=int, default=0,
@@ -128,6 +130,9 @@ def parseArgs():
     parser.add_argument("--bsce-norm", type=int, default=bsce_norm, 
                         dest="bsce_norm", help="Normalization for bsce")
     parser.add_argument("--epoch", type=int, default=350)
+
+    parser.add_argument("--size-average", action="store_true", dest="size_average",
+                        help="Whether to take mean of loss instead of sum")
 
 
     return parser.parse_args()
@@ -210,41 +215,34 @@ if __name__ == "__main__":
     if args.model_name is None:
         args.model_name = args.model
 
+    csv_file_path = '/home/jinxulin/UQ/results/confidence/' + args.dataset + '_' + args.model + '_' + args.loss_function + '_' + str(args.epoch) + '_confidence.csv'
+    with open(csv_file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Sample Index', 'Confidence', 'Acc'])
+
     dataset = args.dataset
     dataset_root = args.dataset_root
     model_name = args.model_name
-    save_loc = '/home/jinxulin/UQ/model_final/' + args.dataset + '/' + args.model + '/' + args.dataset + '-' + args.model + '-' + args.loss + '/' + str(args.seed) + '/epoch/'
-    saved_model_name = args.model + '_' + loss_function_save_name(args.loss, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
+    save_loc = '/home/jinxulin/UQ/model_final/' + args.dataset + '/' + args.model + '/' + args.dataset + '-' + args.model + '-' + args.loss_function + '/' + str(args.seed) + '/epoch/'
+    saved_model_name = args.model + '_' + loss_function_save_name(args.loss_function, args.gamma_schedule, args.temperature, args.gamma, args.gamma, args.gamma2, args.gamma3, args.lamda, args.bsce_norm, args.num_bins) + \
           "_" + str(args.epoch) + ".model"
     num_bins = args.num_bins
     cross_validation_error = args.cross_validation_error
 
     # Taking input for the dataset
     num_classes = dataset_num_classes[dataset]
-    if (args.dataset == 'tiny_imagenet'):
-        val_loader = dataset_loader[args.dataset].get_data_loader(
-            root=args.dataset_root,
-            split='val',
-            batch_size=args.test_batch_size,
-            pin_memory=args.gpu)
 
-        test_loader = dataset_loader[args.dataset].get_data_loader(
-            root=args.dataset_root,
-            split='val',
-            batch_size=args.test_batch_size,
-            pin_memory=args.gpu)
-    else:
-        _, val_loader = dataset_loader[args.dataset].get_train_valid_loader(
-            batch_size=args.train_batch_size,
-            augment=args.data_aug,
-            random_seed=1,
-            pin_memory=args.gpu
-        )
+    _, val_loader = dataset_loader[args.dataset].get_train_valid_loader(
+        batch_size=1,
+        augment=args.data_aug,
+        random_seed=1,
+        pin_memory=args.gpu
+    )
 
-        test_loader = dataset_loader[args.dataset].get_test_loader(
-            batch_size=args.test_batch_size,
-            pin_memory=args.gpu
-        )
+    test_loader = dataset_loader[args.dataset].get_test_loader(
+        batch_size=1,
+        pin_memory=args.gpu
+    )
 
     model = models[model_name]
 
@@ -255,91 +253,29 @@ if __name__ == "__main__":
 
     model_path = os.path.join(save_loc, saved_model_name)
     net.load_state_dict(torch.load(model_path))
+    net.eval()
 
-    # conf_acc = ConfAccLoss().cuda()
-    nll_criterion = nn.CrossEntropyLoss().cuda()
-    ece_criterion = ECELoss().cuda()
-    adaece_criterion = AdaptiveECELoss().cuda()
-    cece_criterion = ClasswiseECELoss().cuda()
-    bs_criterion = BrierScoreLoss().cuda()
+    loss_function = set_loss_function(args, device)
 
-    logits, labels = get_logits_labels(test_loader, net)
-    conf_matrix, p_accuracy, _, _, _ = test_classification_net_logits(logits, labels)
+    sample_index = 0
+    for data, label in test_loader:
+        print(f"Processing sample {sample_index}")
+        data = data.cuda()
+        label = label.cuda()
+        output = net(data)
+        max_output = torch.max(output, dim=1)
+        # calculate confidence
+        confidence = torch.softmax(output, dim=1)
+        confidence = confidence[:, label]
+        # calculate acc
+        acc = (max_output.indices == label).float().mean()
 
-    # bin_stats = conf_acc(logits, labels)
-    # bin_stats = bin_stats.cpu().numpy()
-    # np.save(save_loc+str(args.epoch)+'_bin_stats.npy', bin_stats)
-
-    p_ece = ece_criterion(logits, labels).item()
-    p_adaece = adaece_criterion(logits, labels).item()
-    p_cece, _ = cece_criterion(logits, labels)
-    p_cece = p_cece.item()
-    p_nll = nll_criterion(logits, labels).item()
-    p_bs = bs_criterion(logits,labels).item()
-
-    results_csv_file = 'results_preT.csv'
-    with open(results_csv_file, mode='a', newline='') as results_file:
-        results_writer = csv.writer(results_file)
-        # 将 test_acc 转换为百分数形式，限制到小数点后两位
-        formatted_test_acc = f"{p_accuracy * 100:.2f}%"
-        
-        # 将 ece 相关值限制到小数点后五位并乘以100
-        formatted_test_ece = f"{p_ece * 100:.2f}"
-        formatted_test_adaece = f"{p_adaece * 100:.2f}"
-        formatted_test_classwise_ece = f"{p_cece* 100:.2f}"
-        formatted_brier_score = f"{p_bs * 100:.2f}"
-
-        results_writer.writerow([
-            args.dataset, 
-            args.model, 
-            args.loss, 
-            args.seed, 
-            args.gamma, 
-            args.bsce_norm, 
-            formatted_test_acc, 
-            formatted_test_ece, 
-            formatted_test_adaece, 
-            formatted_test_classwise_ece,
-            formatted_brier_score
-        ])
-
-
-    scaled_model = ModelWithTemperature(net, args.log)
-    scaled_model.set_temperature(val_loader, cross_validate=cross_validation_error)
-    T_opt = scaled_model.get_temperature()
-    logits, labels = get_logits_labels(test_loader, scaled_model)
-    conf_matrix, accuracy, _, _, _ = test_classification_net_logits(logits, labels)
-
-    ece = ece_criterion(logits, labels).item()
-    adaece = adaece_criterion(logits, labels).item()
-    cece, _ = cece_criterion(logits, labels)
-    cece = cece.item()
-    nll = nll_criterion(logits, labels).item()
-    bs = bs_criterion(logits,labels).item()
-
-
-    results_csv_file = 'results_postT.csv'
-    with open(results_csv_file, mode='a', newline='') as results_file:
-        results_writer = csv.writer(results_file)
-        # 将 test_acc 转换为百分数形式，限制到小数点后两位
-        formatted_test_acc = f"{accuracy * 100:.2f}%"
-        
-        # 将 ece 相关值限制到小数点后五位并乘以100
-        formatted_test_ece = f"{ece * 100:.2f}"
-        formatted_test_adaece = f"{adaece * 100:.2f}"
-        formatted_test_classwise_ece = f"{cece* 100:.2f}"
-        formatted_brier_score = f"{bs * 100:.2f}"
-
-        results_writer.writerow([
-            args.dataset, 
-            args.model, 
-            args.loss, 
-            args.seed, 
-            args.gamma, 
-            args.bsce_norm, 
-            formatted_test_acc, 
-            formatted_test_ece, 
-            formatted_test_adaece, 
-            formatted_test_classwise_ece,
-            formatted_brier_score
-        ])
+        with open(csv_file_path, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            for i in range(data.size(0)):
+                writer.writerow([
+                    sample_index, 
+                    confidence[i].item(),
+                    acc.item()
+                ])
+                sample_index += 1
